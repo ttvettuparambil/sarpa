@@ -101,7 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $_SESSION['otp'] = $otp;
                         $_SESSION['user_temp_id'] = $user['id'];
                         $_SESSION['user_temp_role'] = $user['role'];
-                    
+                        $_SESSION['otp_generated_at'] = time(); // store UNIX timestamp
                         // Redirect to OTP screen
                         header("Location: otp-verify.php");
                         exit;

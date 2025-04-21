@@ -6,6 +6,21 @@ if (!isset($_SESSION['otp'])) {
 }
 
 $message = "";
+
+// Set OTP expiry time in seconds (e.g., 5 minutes = 300 seconds)
+$otp_expiry_time = 300;
+
+// Check if OTP has expired
+$current_time = time();
+$otp_generated_at = $_SESSION['otp_generated_at'];
+
+if (($current_time - $otp_generated_at) > $otp_expiry_time) {
+    unset($_SESSION['otp'], $_SESSION['otp_generated_at']);
+    $message = "Your OTP has expired. Please request a new one.";
+} else {
+    $message = "";
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $entered_otp = $_POST['otp'];
 
@@ -58,6 +73,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </form>
 
     <p style="color:red;"><?= $message ?></p>
+    <div id="message-container"></div>
+    <p>Time remaining: <span id="otp-timer"></span></p>
     <p id="resend-info">Didn't receive the code? <span id="resend-timer">Resend in 30s</span></p>
 <p id="resend-link" style="display: none;">
     <a href="#" onclick="resendOTP()">Resend OTP</a>
@@ -66,6 +83,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
     const otpInput = document.getElementById('otpInput');
     const otpForm = document.getElementById('otpForm');
+
+    const otpGeneratedAt = <?php echo isset($_SESSION['otp_generated_at']) ? $_SESSION['otp_generated_at'] : '0'; ?>;
+    const otpExpiryTime = 300; // 5 minutes in seconds
+    const currentTime = Math.floor(Date.now() / 1000);
+    let remainingTime = otpExpiryTime - (currentTime - otpGeneratedAt);
+    const timerDisplay = document.getElementById('otp-timer');
+    const messageContainer = document.getElementById('message-container'); // Ensure this element exists in your HTML
+
 
     otpInput.addEventListener('input', () => {
         if (otpInput.value.length === 4) {
@@ -96,6 +121,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 location.reload(); // reload to get new OTP or re-trigger timer
             });
     }
+
+    function startCountdown() {
+    if (remainingTime <= 0) {
+        timerDisplay.textContent = '00:00';
+        messageContainer.innerHTML = "<p style='color:red;'>Your OTP has expired. Please request a new one.</p>";
+        document.getElementById("otpForm").style.display = 'none'; // Hide OTP form if expired
+        return;
+    }
+
+    const minutes = Math.floor(remainingTime / 60);
+    const seconds = remainingTime % 60;
+    timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    remainingTime--;
+
+    setTimeout(startCountdown, 1000);
+}
+
+startCountdown();
 </script>
 </body>
 </html>
