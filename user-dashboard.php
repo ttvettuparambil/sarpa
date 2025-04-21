@@ -1,7 +1,6 @@
 <?php
 session_start();
 include 'dbConnection.php';
-
 // Timeout duration in seconds (10 minutes)
 $timeout_duration = 600; // 10 * 60
 // Check for inactivity

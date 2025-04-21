@@ -95,28 +95,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $result = mysqli_stmt_get_result($userStmt);
 
             if ($user = mysqli_fetch_assoc($result)) {
-                if (password_verify($password_input, $user['password'])) {
-                    // Successful login, start session and redirect to the appropriate dashboard
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['role'] = $user['role'];
+                if (password_verify($password_input, $user['password'])) {   
+                        // OTP generation
+                        $otp = rand(1000, 9999);
+                        $_SESSION['otp'] = $otp;
+                        $_SESSION['user_temp_id'] = $user['id'];
+                        $_SESSION['user_temp_role'] = $user['role'];
                     
-                    // Clear failed login attempts on successful login
-                    $clearLoginAttemptsStmt = mysqli_prepare($conn, "DELETE FROM login_attempts WHERE email = ? AND ip_address = ?");
-                    mysqli_stmt_bind_param($clearLoginAttemptsStmt, "ss", $email, $ip);
-                    mysqli_stmt_execute($clearLoginAttemptsStmt);
+                        // Redirect to OTP screen
+                        header("Location: otp-verify.php");
+                        exit;
                     
-                    // Close the failed attempts clearing statement
-                    mysqli_stmt_close($clearLoginAttemptsStmt);
-
-                    // Redirect based on the user role
-                    if ($user['role'] == 'user') {
-                        header("Location: user-dashboard.php");
-                    } elseif ($user['role'] == 'partner') {
-                        header("Location: partner-dashboard.php");
-                    } elseif ($user['role'] == 'super_admin') {
-                        header("Location: admin-dashboard.php");
-                    }
-                    exit();
+                    
                 } else {
                     // Log the failed attempt
                     $failedAttemptStmt = mysqli_prepare($conn, "INSERT INTO login_attempts (email, ip_address, attempt_time) VALUES (?, ?, NOW())");
