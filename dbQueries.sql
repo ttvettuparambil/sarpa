@@ -18,14 +18,22 @@ CREATE TABLE users (
 
 CREATE TABLE snake_sightings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    location VARCHAR(255) NOT NULL,
+    complaint_id VARCHAR(20) NOT NULL UNIQUE, 
+    district VARCHAR(100) NOT NULL,
+    city VARCHAR(100),
+    postcode VARCHAR(20),
+    address_line1 VARCHAR(255) NOT NULL,
+    address_line2 VARCHAR(255),
+    landmark VARCHAR(255),
     datetime DATETIME NOT NULL,
-    description TEXT NOT NULL,
+    description TEXT,
     image_path VARCHAR(255),
-    reporter_name VARCHAR(100),
-    reporter_contact VARCHAR(100),
+    user_name VARCHAR(100),
+    user_email VARCHAR(100),
+    user_phone VARCHAR(20),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 

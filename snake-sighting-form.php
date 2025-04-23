@@ -1,89 +1,94 @@
 <?php
 session_start();
-include 'dbConnection.php';
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Report Snake Sighting - SARPA</title>
+    <title>Snake Sighting Form</title>
     <link rel="stylesheet" href="style.css">
-    <style>
-        .form-container { max-width: 600px; margin: auto; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; }
-        input[type="text"], input[type="datetime-local"], textarea, input[type="file"] {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        .preview-img {
-            margin-top: 10px;
-            max-width: 100%;
-            height: auto;
-        }
-    </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('toggleDescription').addEventListener('click', function() {
+            const description = document.getElementById('snakeDescriptionContainer');
+            description.style.display = this.checked ? 'block' : 'none';
+        });
+    });
+</script>
 </head>
 <body>
     <h2>🐍 Report Snake Sighting</h2>
+    <form method="POST" action="submit-sighting.php" enctype="multipart/form-data">
+        <fieldset>
+            <legend>Address Details</legend>
+            <label for="district">District (Kerala):</label>
+            <select name="district" required>
+                <option value="">--Select--</option>
+                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                <option value="Kollam">Kollam</option>
+                <option value="Pathanamthitta">Pathanamthitta</option>
+                <option value="Alappuzha">Alappuzha</option>
+                <option value="Kottayam">Kottayam</option>
+                <option value="Idukki">Idukki</option>
+                <option value="Ernakulam">Ernakulam</option>
+                <option value="Thrissur">Thrissur</option>
+                <option value="Palakkad">Palakkad</option>
+                <option value="Malappuram">Malappuram</option>
+                <option value="Kozhikode">Kozhikode</option>
+                <option value="Wayanad">Wayanad</option>
+                <option value="Kannur">Kannur</option>
+                <option value="Kasaragod">Kasaragod</option>
+            </select><br>
 
-    <div class="form-container">
-        <form action="submit-sighting.php" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="location">Location of Sighting</label>
-                <input type="text" id="location" name="location" required>
-                <button type="button" onclick="getLocation()">📍 Auto Detect Location</button>
+            <label for="city">City/Town:</label>
+            <input type="text" name="city" required><br>
+
+            <label for="postcode">Postcode:</label>
+            <input type="text" name="postcode"><br>
+
+            <label for="address1">Address Line 1:</label>
+            <input type="text" name="address1" required><br>
+
+            <label for="address2">Address Line 2:</label>
+            <input type="text" name="address2"><br>
+
+            <label for="landmark">Landmark:</label>
+            <input type="text" name="landmark"><br>
+        </fieldset>
+
+        <fieldset>
+            <legend>Snake Details</legend>
+            <label for="sighting_time">Date and Time of Sighting:</label>
+            <input type="datetime-local" name="sighting_time" required><br>
+
+            <label for="image">Upload Snake Image:</label>
+            <input type="file" name="image" accept="image/*"><br>
+
+            <label>
+                <input type="checkbox" id="toggleDescription" onclick="toggleDescription()"> Add Snake Description
+            </label>
+
+            <div id="snakeDescriptionContainer" style="display:none;">
+                <label for="description">Snake Description:</label><br>
+                <textarea name="description" rows="4" cols="50"></textarea>
             </div>
+        </fieldset>
 
-            <div class="form-group">
-                <label for="datetime">Date & Time of Sighting</label>
-                <input type="datetime-local" id="datetime" name="datetime" required>
-            </div>
+        <fieldset>
+            <legend>Reporter Info (Optional)</legend>
+            <label for="name">Your Name:</label>
+            <input type="text" name="name"><br>
 
-            <div class="form-group">
-                <label for="description">Description of the Snake</label>
-                <textarea id="description" name="description" rows="4" required></textarea>
-            </div>
+            <label for="phone">Phone:</label>
+            <input type="text" name="phone"><br>
 
-            <div class="form-group">
-                <label for="image">Upload Image (max 2MB)</label>
-                <input type="file" id="image" name="image" accept="image/*" onchange="previewImage(event)">
-                <img id="preview" class="preview-img" style="display:none;">
-            </div>
+            <label for="email">Email:</label>
+            <input type="email" name="email"><br>
+        </fieldset>
 
-            <div class="form-group">
-                <label for="reporter_name">Your Name (Optional)</label>
-                <input type="text" id="reporter_name" name="reporter_name">
-            </div>
+        <button type="submit">📤 Submit Sighting</button>
 
-            <div class="form-group">
-                <label for="reporter_contact">Your Contact (Optional)</label>
-                <input type="text" id="reporter_contact" name="reporter_contact">
-            </div>
-
-            <button type="submit">📢 Submit Report</button>
-        </form>
-    </div>
-
-    <script>
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((position) => {
-                    document.getElementById('location').value =
-                        `Lat: ${position.coords.latitude}, Lng: ${position.coords.longitude}`;
-                }, () => {
-                    alert('Location access denied.');
-                });
-            } else {
-                alert('Geolocation is not supported by this browser.');
-            }
-        }
-
-        function previewImage(event) {
-            const preview = document.getElementById('preview');
-            preview.src = URL.createObjectURL(event.target.files[0]);
-            preview.style.display = 'block';
-        }
-    </script>
+    </form>
+  
 </body>
 </html>

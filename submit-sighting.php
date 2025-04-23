@@ -1,47 +1,61 @@
 <?php
 session_start();
-include 'dbConnection.php';
+require 'dbConnection.php'; // assumes db connection is here
 
-// Sanitize input
-$location = htmlspecialchars(trim($_POST['location']));
-$datetime = $_POST['datetime'];
-$description = htmlspecialchars(trim($_POST['description']));
-$reporter_name = !empty($_POST['reporter_name']) ? htmlspecialchars(trim($_POST['reporter_name'])) : null;
-$reporter_contact = !empty($_POST['reporter_contact']) ? htmlspecialchars(trim($_POST['reporter_contact'])) : null;
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $district = $_POST['district'];
+    $city = $_POST['city'];
+    $postcode = $_POST['postcode'];
+    $address1 = $_POST['address1'];
+    $address2 = $_POST['address2'];
+    $landmark = $_POST['landmark'];
 
-// Image handling
-$image_path = null;
-if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
-    $upload_dir = 'uploads/';
-    if (!is_dir($upload_dir)) {
-        mkdir($upload_dir, 0755, true);
+    $sighting_time = $_POST['sighting_time'];
+    $description = !empty($_POST['description']) ? $_POST['description'] : null;
+
+    $name = $_POST['name'] ?? null;
+    $phone = $_POST['phone'] ?? null;
+    $email = $_POST['email'] ?? null;
+
+    $complaint_id = uniqid("C-");
+
+    // Handle image upload
+    $image_path = null;
+    if (!empty($_FILES['image']['name'])) {
+        $target_dir = "uploads/";
+        if (!is_dir($target_dir)) mkdir($target_dir, 0755, true);
+        $image_path = $target_dir . time() . "-" . basename($_FILES["image"]["name"]);
+        move_uploaded_file($_FILES["image"]["tmp_name"], $image_path);
     }
 
-    $tmp_name = $_FILES['image']['tmp_name'];
-    $original_name = basename($_FILES['image']['name']);
-    $extension = pathinfo($original_name, PATHINFO_EXTENSION);
-    $new_name = uniqid('snake_', true) . '.' . $extension;
+    // Prepare SQL insert
+    $stmt = $conn->prepare("INSERT INTO snake_sightings 
+        (complaint_id, district, city, postcode, address_line1, address_line2, landmark, datetime, description, image_path, user_name, user_phone, user_email) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
-    // Check file size (limit 2MB)
-    if ($_FILES['image']['size'] > 2 * 1024 * 1024) {
-        die("Image is too large. Maximum size is 2MB.");
+    $stmt->bind_param(
+        "sssssssssssss",
+        $complaint_id,
+        $district,
+        $city,
+        $postcode,
+        $address1,
+        $address2,
+        $landmark,
+        $sighting_time,
+        $description,
+        $image_path,
+        $name,
+        $phone,
+        $email
+    );
+
+    if ($stmt->execute()) {
+        $_SESSION['complaint_id'] = $complaint_id;
+        header("Location: sighting-summary.php");
+        exit;
+    } else {
+        echo "Something went wrong. Please try again.";
     }
-
-    $image_path = $upload_dir . $new_name;
-    move_uploaded_file($tmp_name, $image_path);
 }
-
-// Insert into DB
-$stmt = mysqli_prepare($conn, "INSERT INTO snake_sightings (location, datetime, description, image_path, reporter_name, reporter_contact) VALUES (?, ?, ?, ?, ?, ?)");
-mysqli_stmt_bind_param($stmt, "ssssss", $location, $datetime, $description, $image_path, $reporter_name, $reporter_contact);
-
-if (mysqli_stmt_execute($stmt)) {
-    echo "<h2>✅ Snake sighting reported successfully!</h2>";
-    echo "<p><a href='index.html'>Back to Home</a></p>";
-} else {
-    echo "<h2>❌ Failed to submit report. Please try again.</h2>";
-}
-
-mysqli_stmt_close($stmt);
-mysqli_close($conn);
 ?>
