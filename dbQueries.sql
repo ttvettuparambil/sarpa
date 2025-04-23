@@ -18,13 +18,15 @@ CREATE TABLE users (
 
 CREATE TABLE snake_sightings (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    snake_type VARCHAR(100),
-    description TEXT,
-    status ENUM('reported', 'accepted', 'captured') DEFAULT 'reported',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    location VARCHAR(255) NOT NULL,
+    datetime DATETIME NOT NULL,
+    description TEXT NOT NULL,
+    image_path VARCHAR(255),
+    reporter_name VARCHAR(100),
+    reporter_contact VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
 
 
 CREATE TABLE password_resets (
