@@ -2,6 +2,14 @@
 include 'dbConnection.php';
 session_start();
 
+if (isset($_SESSION['role']) && $_SESSION['role'] == 'user') {
+    header("Location: user-dashboard.php");
+} elseif (isset($_SESSION['role']) && $_SESSION['role'] == 'partner') {
+    header("Location: partner-dashboard.php");
+} elseif (isset($_SESSION['role']) && $_SESSION['role'] == 'super_admin') {
+    header("Location: admin-dashboard.php");
+}
+
 // Clean up expired lockouts from the database
 $cleanupLocksStmt = mysqli_prepare($conn, "UPDATE login_attempts SET unlock_time = NULL WHERE unlock_time <= NOW()");
 mysqli_stmt_execute($cleanupLocksStmt);
