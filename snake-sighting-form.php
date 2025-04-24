@@ -1,5 +1,19 @@
 <?php
 session_start();
+
+$userData = [];
+$userLoggedIn = false;
+
+if (isset($_SESSION['user_id'])) {
+    $userLoggedIn = true;
+    require 'dbConnection.php'; // your DB connection
+    $stmt = $conn->prepare("SELECT first_name, last_name, email, phone, district, city, postcode, address_line1, address_line2, landmark FROM users WHERE id = ?");
+
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $userData = $result->fetch_assoc();
+}
 ?>
 
 <!DOCTYPE html>
@@ -8,12 +22,75 @@ session_start();
     <title>Snake Sighting Form</title>
     <link rel="stylesheet" href="style.css">
     <script>
+    // Store user data in JavaScript variables
+    <?php if ($userLoggedIn && $userData): ?>
+    const userData = {
+        district: <?php echo json_encode($userData['district'] ?? ''); ?>,
+        city: <?php echo json_encode($userData['city'] ?? ''); ?>,
+        postcode: <?php echo json_encode($userData['postcode'] ?? ''); ?>,
+        address_line1: <?php echo json_encode($userData['address_line1'] ?? ''); ?>,
+        address_line2: <?php echo json_encode($userData['address_line2'] ?? ''); ?>,
+        landmark: <?php echo json_encode($userData['landmark'] ?? ''); ?>,
+        name: <?php echo json_encode(isset($userData['first_name']) && isset($userData['last_name']) ? $userData['first_name'] . ' ' . $userData['last_name'] : ''); ?>,
+        phone: <?php echo json_encode($userData['phone'] ?? ''); ?>,
+        email: <?php echo json_encode($userData['email'] ?? ''); ?>
+    };
+    <?php else: ?>
+    const userData = null;
+    <?php endif; ?>
+    
     document.addEventListener('DOMContentLoaded', function() {
+        // Toggle description section
         document.getElementById('toggleDescription').addEventListener('click', function() {
             const description = document.getElementById('snakeDescriptionContainer');
             description.style.display = this.checked ? 'block' : 'none';
         });
+        
+        // Handle populate address checkbox
+        const populateAddressCheckbox = document.getElementById('populateAddress');
+        if (populateAddressCheckbox) {
+            populateAddressCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    populateAddressFields();
+                } else {
+                    clearAddressFields();
+                }
+            });
+        }
     });
+    
+    // Function to populate address fields with user data
+    function populateAddressFields() {
+        if (!userData) return;
+        
+        // Set district dropdown
+        const districtSelect = document.querySelector('select[name="district"]');
+        if (districtSelect && userData.district) {
+            for (let i = 0; i < districtSelect.options.length; i++) {
+                if (districtSelect.options[i].value === userData.district) {
+                    districtSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        }
+        
+        // Set text input fields
+        document.querySelector('input[name="city"]').value = userData.city || '';
+        document.querySelector('input[name="postcode"]').value = userData.postcode || '';
+        document.querySelector('input[name="address1"]').value = userData.address_line1 || '';
+        document.querySelector('input[name="address2"]').value = userData.address_line2 || '';
+        document.querySelector('input[name="landmark"]').value = userData.landmark || '';
+    }
+    
+    // Function to clear address fields
+    function clearAddressFields() {
+        document.querySelector('select[name="district"]').selectedIndex = 0;
+        document.querySelector('input[name="city"]').value = '';
+        document.querySelector('input[name="postcode"]').value = '';
+        document.querySelector('input[name="address1"]').value = '';
+        document.querySelector('input[name="address2"]').value = '';
+        document.querySelector('input[name="landmark"]').value = '';
+    }
 </script>
 </head>
 <body>
@@ -21,6 +98,13 @@ session_start();
     <form method="POST" action="submit-sighting.php" enctype="multipart/form-data">
         <fieldset>
             <legend>Address Details</legend>
+            <?php if ($userLoggedIn): ?>
+            <div style="margin-bottom: 15px;">
+                <label>
+                    <input type="checkbox" id="populateAddress"> Populate address from account
+                </label>
+            </div>
+            <?php endif; ?>
             <label for="district">District (Kerala):</label>
             <select name="district" required>
                 <option value="">--Select--</option>
@@ -77,13 +161,13 @@ session_start();
         <fieldset>
             <legend>Reporter Info (Optional)</legend>
             <label for="name">Your Name:</label>
-            <input type="text" name="name"><br>
+            <input type="text" name="name" value="<?php echo isset($userData['first_name']) && isset($userData['last_name']) ? htmlspecialchars($userData['first_name'] . ' ' . $userData['last_name']) : ''; ?>"><br>
 
             <label for="phone">Phone:</label>
-            <input type="text" name="phone"><br>
+            <input type="text" name="phone" value="<?php echo isset($userData['phone']) ? htmlspecialchars($userData['phone']) : ''; ?>"><br>
 
             <label for="email">Email:</label>
-            <input type="email" name="email"><br>
+            <input type="email" name="email" value="<?php echo isset($userData['email']) ? htmlspecialchars($userData['email']) : ''; ?>"><br>
         </fieldset>
 
         <button type="submit">📤 Submit Sighting</button>
