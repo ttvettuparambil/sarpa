@@ -1,6 +1,7 @@
 <?php
 session_start();
 require 'dbConnection.php';
+require_once 'config.php';
 
 if (!isset($_SESSION['complaint_id'])) {
     echo "No complaint data found.";
@@ -96,6 +97,14 @@ $data = $result->fetch_assoc();
     .precautions-list li {
       margin-bottom: 5px;
     }
+    .summary-text {
+      line-height: 1.5;
+      margin-top: 5px;
+      padding: 10px;
+      background-color: #f8f9fa;
+      border-left: 3px solid #2a7d46;
+      border-radius: 3px;
+    }
     .api-error {
       padding: 10px;
       background-color: #f8d7da;
@@ -151,9 +160,9 @@ $data = $result->fetch_assoc();
       <div class="analysis-section">
         <p><strong>Venomous:</strong> <span id="snakeVenomous">-</span></p>
       </div>
-      <div class="analysis-section" id="snakePrecautions">
-        <p><strong>Precautions:</strong></p>
-        <ul class="precautions-list" id="precautionsList"></ul>
+      <div class="analysis-section" id="snakeSummary">
+        <p><strong>Summary:</strong></p>
+        <p id="summaryText" class="summary-text"></p>
       </div>
     </div>
     <div id="analysisError" style="display:none;" class="api-error">
@@ -164,16 +173,12 @@ $data = $result->fetch_assoc();
 </div>
 
 <script>
-  // Google Gemini API Key
-  const API_KEY = "AIzaSyAExRQcOKbuQGfZxrLqZ_ctS_2hE4L7pYs";
-  
   // Elements
   const loadingElement = document.getElementById('loadingAnalysis');
   const resultsElement = document.getElementById('analysisResults');
   const errorElement = document.getElementById('analysisError');
   const speciesElement = document.getElementById('snakeSpecies');
   const venomousElement = document.getElementById('snakeVenomous');
-  const precautionsListElement = document.getElementById('precautionsList');
   
   // Function to analyze snake image
   async function analyzeSnakeImage() {
@@ -181,11 +186,6 @@ $data = $result->fetch_assoc();
     const imagePath = "<?= htmlspecialchars($data['image_path']) ?>";
     
     try {
-      // Check if API key is available
-      if (!API_KEY || API_KEY === "") {
-        throw new Error("API key not configured");
-      }
-      
       // Load Gemini API
       await loadGeminiAPI();
       
@@ -239,71 +239,25 @@ $data = $result->fetch_assoc();
   // Function to call Gemini API
   async function callGeminiAPI(imageData) {
     try {
-      // First try using the proxy to avoid CORS issues
+      // Use the server-side proxy to make the API call
       console.log("Sending request to Gemini API via proxy...");
       
       // Create form data for the proxy request
       const formData = new FormData();
-      formData.append('api_key', API_KEY);
       formData.append('image_data', imageData);
       
-      // Try the proxy first
-      try {
-        const proxyResponse = await fetch('gemini-proxy.php', {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (proxyResponse.ok) {
-          console.log("Proxy request successful");
-          return await handleApiResponse(proxyResponse);
-        } else {
-          console.log("Proxy request failed, falling back to direct API call");
-          // If proxy fails, fall back to direct API call
-        }
-      } catch (proxyError) {
-        console.error("Error using proxy:", proxyError);
-        console.log("Falling back to direct API call");
-      }
-      
-      // Direct API call as fallback
-      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`;
-      
-      const requestData = {
-        contents: [
-          {
-            parts: [
-              {
-                text: "Analyze this snake image. Identify the species, determine if it's venomous, and provide safety precautions. Format your response as JSON with these fields: species (string), venomous (boolean), precautions (array of strings)."
-              },
-              {
-                inline_data: {
-                  mime_type: "image/jpeg",
-                  data: imageData
-                }
-              }
-            ]
-          }
-        ],
-        generationConfig: {
-          temperature: 0.4,
-          topK: 32,
-          topP: 1,
-          maxOutputTokens: 4096
-        }
-      };
-      
-      console.log("Sending direct request to Gemini API...");
-      
-      const response = await fetch(apiUrl, {
+      // Send request to proxy
+      const proxyResponse = await fetch('gemini-proxy.php', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(requestData)
+        body: formData
       });
       
-      return await handleApiResponse(response);
+      if (!proxyResponse.ok) {
+        throw new Error(`Proxy request failed with status ${proxyResponse.status}`);
+      }
+      
+      console.log("Proxy request successful");
+      return await handleApiResponse(proxyResponse);
       
     } catch (error) {
       console.error("Error calling Gemini API:", error);
@@ -312,12 +266,7 @@ $data = $result->fetch_assoc();
       return {
         species: "Analysis failed - please consult an expert",
         venomous: true, // Assume venomous for safety
-        precautions: [
-          "Keep a safe distance from the snake",
-          "Contact local snake handlers listed in the system",
-          "Do not attempt to handle the snake yourself",
-          "If bitten, seek immediate medical attention"
-        ]
+        summary: "Unable to analyze the snake image. This could be a potentially dangerous snake. Please consult with a local snake expert for proper identification and handling advice."
       };
     }
   }
@@ -360,27 +309,19 @@ $data = $result->fetch_assoc();
       // If JSON parsing fails, try to extract the information manually
       const speciesMatch = textResponse.match(/species["\s:]+([^"]+)/i);
       const venomousMatch = textResponse.match(/venomous["\s:]+([^"]+)/i);
+      const summaryMatch = textResponse.match(/summary["\s:]+([^"]+)/i);
       
       parsedData = {
         species: speciesMatch ? speciesMatch[1].trim() : "Unknown species",
         venomous: venomousMatch ? venomousMatch[1].toLowerCase().includes("true") : false,
-        precautions: [
-          "Keep a safe distance from the snake",
-          "Contact local wildlife authorities for assistance",
-          "Do not attempt to handle the snake yourself",
-          "If bitten, seek immediate medical attention"
-        ]
+        summary: summaryMatch ? summaryMatch[1].trim() : "This snake requires expert identification. Please consult with a local herpetologist for more information."
       };
     }
     
     return {
       species: parsedData.species || "Unknown species",
       venomous: !!parsedData.venomous,
-      precautions: Array.isArray(parsedData.precautions) ? parsedData.precautions : [
-        "Keep a safe distance from the snake",
-        "Contact local wildlife authorities for assistance",
-        "Do not attempt to handle the snake yourself"
-      ]
+      summary: parsedData.summary || "No additional information available about this snake species."
     };
   }
   
@@ -396,13 +337,9 @@ $data = $result->fetch_assoc();
       venomousElement.innerHTML = "No <span class='venomous-tag venomous-no'>NON-VENOMOUS</span>";
     }
     
-    // Update precautions
-    precautionsListElement.innerHTML = "";
-    result.precautions.forEach(precaution => {
-      const li = document.createElement("li");
-      li.textContent = precaution;
-      precautionsListElement.appendChild(li);
-    });
+    // Update summary
+    const summaryTextElement = document.getElementById('summaryText');
+    summaryTextElement.textContent = result.summary;
     
     // Hide loading, show results
     loadingElement.style.display = "none";

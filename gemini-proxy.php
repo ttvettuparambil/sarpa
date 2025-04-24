@@ -2,6 +2,9 @@
 // Gemini API Proxy
 // This script acts as a proxy between the client and the Gemini API to avoid CORS issues
 
+// Include configuration file
+require_once 'config.php';
+
 // Allow cross-origin requests from the same domain
 header('Content-Type: application/json');
 
@@ -12,8 +15,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Get the API key from the request or use the default one
-$apiKey = $_POST['api_key'] ?? 'AIzaSyAExRQcOKbuQGfZxrLqZ_ctS_2hE4L7pYs';
+// Always use the API key from config, never from client
+$apiKey = GEMINI_API_KEY;
 
 // Get the image data from the request
 $imageData = $_POST['image_data'] ?? '';
@@ -32,7 +35,7 @@ $requestData = [
         [
             'parts' => [
                 [
-                    'text' => "Analyze this snake image. Identify the species, determine if it's venomous, and provide safety precautions. Format your response as JSON with these fields: species (string), venomous (boolean), precautions (array of strings)."
+                    'text' => "Analyze this snake image. Identify the species, determine if it's venomous, and provide a summary of the snake. Format your response as JSON with these fields: species (string), venomous (boolean), summary (string)."
                 ],
                 [
                     'inline_data' => [
