@@ -112,6 +112,74 @@ $data = $result->fetch_assoc();
       border-radius: 5px;
       color: #721c24;
     }
+    
+    /* Snake Handlers Cards Styling */
+    .handlers-container {
+      margin-top: 30px;
+      padding: 20px;
+      border: 2px solid #d1e7dd;
+      border-radius: 10px;
+      background-color: #f8f9fa;
+    }
+    .handlers-container h3 {
+      color: #2a7d46;
+      margin-bottom: 15px;
+    }
+    .handlers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 15px;
+    }
+    .handler-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      transition: transform 0.2s;
+    }
+    .handler-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+    .handler-card h4 {
+      color: #2a7d46;
+      margin-top: 0;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+    }
+    .handler-card p {
+      margin: 5px 0;
+      font-size: 14px;
+    }
+    .handler-card .phone {
+      font-weight: bold;
+      color: #0056b3;
+    }
+    .handler-card .type {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .handler-card .staff {
+      background-color: #d1e7dd;
+      color: #0f5132;
+    }
+    .handler-card .volunteer {
+      background-color: #cfe2ff;
+      color: #084298;
+    }
+    .no-handlers {
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-left: 3px solid #6c757d;
+      border-radius: 3px;
+      color: #6c757d;
+    }
   </style>
   <!-- No external API script needed as we're using fetch API -->
 </head>
@@ -170,6 +238,67 @@ $data = $result->fetch_assoc();
     </div>
   </div>
   <?php endif; ?>
+  
+  <!-- Snake Handlers Section -->
+  <?php
+  // Load snake handlers data
+  $handlersData = [];
+  $jsonFile = 'snakeHandlers.json';
+  
+  if (file_exists($jsonFile)) {
+    $handlersJson = file_get_contents($jsonFile);
+    $handlersData = json_decode($handlersJson, true);
+  }
+  
+  // Filter handlers by district
+  $districtHandlers = [];
+  $district = $data['district'] ?? '';
+  
+  if (!empty($handlersData) && !empty($district)) {
+    foreach ($handlersData as $handler) {
+      if (isset($handler['district']) && $handler['district'] === $district) {
+        $districtHandlers[] = $handler;
+      }
+    }
+  }
+  ?>
+  
+  <div class="handlers-container">
+    <h3>Snake Handlers in <?= htmlspecialchars($district) ?></h3>
+    
+    <?php if (empty($districtHandlers)): ?>
+      <p class="no-handlers">No certified snake handlers found in your district. Please contact the Forest Department for assistance.</p>
+    <?php else: ?>
+      <p>Below are certified snake handlers in your district who can help with snake rescue:</p>
+      
+      <div class="handlers-grid">
+        <?php foreach ($districtHandlers as $handler): ?>
+          <div class="handler-card">
+            <h4><?= htmlspecialchars($handler['name'] ?? 'Unknown') ?></h4>
+            <p><strong>Designation/Address:</strong><br>
+              <?= htmlspecialchars($handler['designation_address'] ?? 'Not available') ?>
+            </p>
+            <p class="phone">
+              <strong>Phone:</strong> 
+              <?php if (!empty($handler['mobile_number'])): ?>
+                <a href="tel:<?= preg_replace('/[^0-9]/', '', $handler['mobile_number']) ?>">
+                  <?= htmlspecialchars($handler['mobile_number']) ?>
+                </a>
+              <?php else: ?>
+                Not available
+              <?php endif; ?>
+            </p>
+            <p><strong>Certification ID:</strong> <?= htmlspecialchars($handler['certification_id'] ?? 'Not available') ?></p>
+            <?php 
+              $type = $handler['type'] ?? '';
+              $typeClass = (strpos(strtolower($type), 'staff') !== false) ? 'staff' : 'volunteer';
+            ?>
+            <span class="type <?= $typeClass ?>"><?= htmlspecialchars($type) ?></span>
+          </div>
+        <?php endforeach; ?>
+      </div>
+    <?php endif; ?>
+  </div>
 </div>
 
 <script>
