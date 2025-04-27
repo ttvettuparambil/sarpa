@@ -21,6 +21,8 @@ if (isset($_SESSION['user_id'])) {
 <head>
     <title>Snake Sighting Form</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script>
     // Store user data in JavaScript variables
     <?php if ($userLoggedIn && $userData): ?>
@@ -40,6 +42,49 @@ if (isset($_SESSION['user_id'])) {
     <?php endif; ?>
     
     document.addEventListener('DOMContentLoaded', function() {
+        // Set up date range constraints for snake sighting
+        const now = new Date();
+        const oneWeekAgo = new Date();
+        oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+        
+        // Initialize Flatpickr for date-time selection
+        flatpickr("input[name='sighting_time']", {
+            enableTime: true,
+            dateFormat: "Y-m-d H:i",
+            time_24hr: true,
+            minDate: oneWeekAgo,
+            maxDate: now,
+            defaultDate: now, // Set default to current date
+            disable: [
+                function(date) {
+                    // Disable future dates
+                    return date > now;
+                },
+                function(date) {
+                    // Disable dates older than 1 week
+                    return date < oneWeekAgo;
+                }
+            ],
+            // Show a message when hovering over disabled dates
+            onDayCreate: function(dObj, dStr, fp, dayElem) {
+                const date = dayElem.dateObj;
+                if (date > now) {
+                    dayElem.title = "Future dates are not allowed";
+                } else if (date < oneWeekAgo) {
+                    dayElem.title = "Dates older than 1 week are not allowed";
+                }
+            }
+        });
+        
+        // Add form validation
+        document.querySelector('form').addEventListener('submit', function(event) {
+            const dateTimeInput = document.querySelector('input[name="sighting_time"]');
+            if (!dateTimeInput.value) {
+                event.preventDefault();
+                alert('Please select a date and time for the snake sighting.');
+            }
+        });
+        
         // Toggle description section
         document.getElementById('toggleDescription').addEventListener('click', function() {
             const description = document.getElementById('snakeDescriptionContainer');

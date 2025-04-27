@@ -300,7 +300,7 @@ $data = $result->fetch_assoc();
     (<?= htmlspecialchars($data['user_email'] ?? 'N/A') ?> / <?= htmlspecialchars($data['user_phone'] ?? 'N/A') ?>)
   </p>
   
-  <?php if (!empty($data['image_path']) && file_exists($data['image_path'])): ?>
+  <?php if (isset($_SESSION['user_id']) && !empty($data['image_path']) && file_exists($data['image_path'])): ?>
   <!-- AI Analysis Section -->
   <div class="ai-analysis-container" id="aiAnalysisContainer">
     <h3>AI Snake Analysis</h3>
@@ -325,6 +325,7 @@ $data = $result->fetch_assoc();
   </div>
   <?php endif; ?>
   
+  <?php if (isset($_SESSION['user_id'])): ?>
   <!-- Snake Handlers Section -->
   <?php
   // Load snake handlers data
@@ -385,6 +386,7 @@ $data = $result->fetch_assoc();
       </div>
     <?php endif; ?>
   </div>
+  <?php endif; ?>
 </div>
 
 <script>

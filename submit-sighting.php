@@ -10,7 +10,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $address2 = $_POST['address2'];
     $landmark = $_POST['landmark'];
 
-    $sighting_time = $_POST['sighting_time'];
+    // Validate sighting_time
+    $sighting_time = $_POST['sighting_time'] ?? '';
+    if (empty($sighting_time)) {
+        echo "Error: Date and time of sighting is required.";
+        exit;
+    }
+    
     $description = !empty($_POST['description']) ? $_POST['description'] : null;
 
     $name = $_POST['name'] ?? null;
