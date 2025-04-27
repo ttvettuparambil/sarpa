@@ -3,12 +3,36 @@ session_start();
 require 'dbConnection.php';
 require_once 'config.php';
 
-if (!isset($_SESSION['complaint_id'])) {
-    echo "No complaint data found.";
-    exit;
+// Initialize complaint_id variable
+$complaint_id = null;
+
+// First check if complaint_id exists in URL query parameter
+if (isset($_GET['complaint_id']) && !empty($_GET['complaint_id'])) {
+    // Sanitize the input to prevent XSS attacks
+    $complaint_id = htmlspecialchars($_GET['complaint_id'], ENT_QUOTES, 'UTF-8');
+    
+    // Validate complaint_id format (assuming it's alphanumeric)
+    if (!preg_match('/^[a-zA-Z0-9\-_]+$/', $complaint_id)) {
+        echo "Invalid complaint ID format.";
+        exit;
+    }
+    
+    // Ensure the complaint_id isn't unreasonably long
+    if (strlen($complaint_id) > 50) {
+        echo "Invalid complaint ID length.";
+        exit;
+    }
+} 
+// If not in URL, check if it exists in session (for logged-in users)
+elseif (isset($_SESSION['complaint_id'])) {
+    $complaint_id = $_SESSION['complaint_id'];
 }
 
-$complaint_id = $_SESSION['complaint_id'];
+// If complaint_id is still not found, show error
+if ($complaint_id === null) {
+    echo "No complaint data found. Please provide a valid complaint ID.";
+    exit;
+}
 
 // Fetch full complaint details from DB
 $stmt = $conn->prepare("SELECT * FROM snake_sightings WHERE complaint_id = ?");
@@ -38,6 +62,7 @@ $data = $result->fetch_assoc();
       border: 2px solid #eee;
       border-radius: 10px;
       background-color: #fafafa;
+      position: relative;
     }
     .summary-container h2 {
       color: #2a7d46;
@@ -180,12 +205,73 @@ $data = $result->fetch_assoc();
       border-radius: 3px;
       color: #6c757d;
     }
+    
+    /* Share Button Styling */
+    .share-button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: #2a7d46;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background-color 0.3s;
+    }
+    
+    .share-button:hover {
+      background-color: #1e5e34;
+    }
+    
+    .share-button svg {
+      margin-right: 6px;
+      width: 16px;
+      height: 16px;
+    }
+    
+    .share-tooltip {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #333;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    
+    .share-button:focus .share-tooltip,
+    .share-tooltip.show {
+      opacity: 1;
+    }
   </style>
   <!-- No external API script needed as we're using fetch API -->
 </head>
 <body>
 
 <div class="summary-container">
+  <?php if (!isset($_GET['complaint_id'])): ?>
+  <button id="shareButton" class="share-button">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="18" cy="5" r="3"></circle>
+      <circle cx="6" cy="12" r="3"></circle>
+      <circle cx="18" cy="19" r="3"></circle>
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+    </svg>
+    Copy Sharable Link
+    <span class="share-tooltip" id="shareTooltip">Link copied!</span>
+  </button>
+  <?php endif; ?>
   <h2>Complaint Submitted Successfully</h2>
   <p><strong>Complaint ID:</strong> <?= htmlspecialchars($data['complaint_id']) ?></p>
   <hr>
@@ -302,6 +388,46 @@ $data = $result->fetch_assoc();
 </div>
 
 <script>
+  // Share button functionality
+  const shareButton = document.getElementById('shareButton');
+  
+  // Only run this code if the button exists (not shown for shared links)
+  if (shareButton) {
+    const shareTooltip = document.getElementById('shareTooltip');
+    
+    shareButton.addEventListener('click', function() {
+    // Get the complaint ID
+    const complaintId = "<?= htmlspecialchars($data['complaint_id']) ?>";
+    
+    // Create the sharable URL
+    const currentUrl = window.location.href.split('?')[0]; // Get base URL without query params
+    const sharableUrl = `${currentUrl}?complaint_id=${complaintId}`;
+    console.log(`shareable url is:::>`,sharableUrl);
+    
+    // Create temporary input element
+    const tempInput = document.createElement('input');
+    tempInput.style.position = 'absolute';
+    tempInput.style.left = '-9999px';
+    tempInput.value = sharableUrl;
+    document.body.appendChild(tempInput);
+    
+    // Select and copy
+    tempInput.select();
+    document.execCommand('copy');
+    
+    // Remove the temporary input
+    document.body.removeChild(tempInput);
+    
+    // Show the tooltip
+    shareTooltip.classList.add('show');
+    
+    // Hide the tooltip after 2 seconds
+    setTimeout(function() {
+      shareTooltip.classList.remove('show');
+    }, 2000);
+    });
+  }
+  
   // Elements
   const loadingElement = document.getElementById('loadingAnalysis');
   const resultsElement = document.getElementById('analysisResults');
