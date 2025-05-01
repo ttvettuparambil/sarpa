@@ -5,7 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Professional Snake Catchers | 24/7 Emergency Removal</title>
     <link rel="stylesheet" href="style.css" />
-    <script src="script.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+      @theme {
+        --color-clifford: #da373d;
+      }
+      .test {
+        @apply font-bold;
+      }
+    </style>
   </head>
   <body>
     <!-- Header -->
@@ -38,8 +47,8 @@
     <section class="hero">
       <div class="container">
         <div class="hero-content">
-          <h1>Professional Snake Removal Services</h1>
-          <p>
+          <h1 class="te">Professional Snake Removal Services</h1>
+          <p class="test sans-serif-text-preset-1 bg-clifford">
             Safe, humane, and expert snake catching services for homes and
             businesses. Our licensed professionals are available 24/7 to handle
             any snake emergency.
@@ -438,7 +447,7 @@
         </div>
       </div>
     </footer>
-
+    <script src="script.js"></script>
     <script>
       // Mobile Menu Toggle
       const mobileMenuBtn = document.querySelector(".mobile-menu-btn");
