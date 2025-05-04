@@ -237,6 +237,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Fallback meta refresh for error messages -->
     <meta http-equiv="refresh" content="60; url=<?php echo $_SERVER['PHP_SELF']; ?>">
     <?php endif; ?>
+    <style>
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px 15px;
+            margin: 15px 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+            max-width: 250px;
+        }
+        .google-btn:hover {
+            background-color: #f5f5f5;
+        }
+        .google-btn img {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+        }
+        .or-divider {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+            color: #666;
+        }
+        .or-divider::before, .or-divider::after {
+            content: "";
+            flex: 1;
+            border-bottom: 1px solid #ddd;
+        }
+        .or-divider::before {
+            margin-right: 10px;
+        }
+        .or-divider::after {
+            margin-left: 10px;
+        }
+    </style>
 </head>
 <body>
     <h2>Login</h2>
@@ -245,6 +286,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <input type="password" name="password" placeholder="Password" required><br>
         <input type="submit" value="Login">
     </form>
+    
+    <div class="or-divider">OR</div>
+    
+    <button type="button" id="google-signin" class="google-btn">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="Google">
+        Sign in with Google
+    </button>
+    
     <p><?= $message ?></p>
     <a href="/forgot_password.php">Forgot password?</a>
     
@@ -256,5 +305,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }, 60000); // 60000 ms = 1 minute
         </script>
     <?php endif; ?>
+    
+    <script>
+        document.getElementById('google-signin').addEventListener('click', function() {
+            // Replace these values with your actual Google OAuth credentials
+            const clientId = 'YOUR_GOOGLE_CLIENT_ID';
+            const redirectUri = encodeURIComponent('https://yourdomain.com/google-auth-callback.php');
+            const scope = encodeURIComponent('email profile');
+            const responseType = 'code';
+            const accessType = 'offline';
+            const prompt = 'consent';
+            
+            // Construct the Google OAuth URL
+            const googleAuthUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}&access_type=${accessType}&prompt=${prompt}`;
+            
+            // Redirect to Google's OAuth page
+            window.location.href = googleAuthUrl;
+        });
+    </script>
 </body>
 </html>
