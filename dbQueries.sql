@@ -34,9 +34,6 @@ CREATE TABLE snake_sightings (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-
-
-
 CREATE TABLE password_resets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
@@ -52,5 +49,19 @@ CREATE TABLE login_attempts (
     ip_address VARCHAR(45),
     attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+ALTER TABLE login_attempts ADD COLUMN unlock_time INT NULL;
 
-ALTER TABLE sarpa.login_attempts ADD COLUMN unlock_time INT NULL;
+CREATE TABLE user_profiles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    dob DATE,
+    gender ENUM('Male', 'Female', 'Other'),
+    occupation VARCHAR(100),
+    education_level VARCHAR(100),
+    bio TEXT,
+    alternate_email VARCHAR(255),
+    alternate_phone VARCHAR(15),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+ALTER TABLE user_profiles MODIFY gender VARCHAR(10);
+ALTER TABLE user_profiles MODIFY dob DATE NULL;
