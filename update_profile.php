@@ -18,6 +18,60 @@ $bio = trim($_POST['bio'] ?? '');
 $alternate_phone = trim($_POST['alternate_phone'] ?? '');
 $alternate_email = trim($_POST['alternate_email'] ?? '');
 
+// Handle profile picture upload
+$profile_picture = null;
+if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {
+    $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $max_size = 2 * 1024 * 1024; // 2MB
+    
+    $file = $_FILES['profile_picture'];
+    
+    // Validate file type
+    if (!in_array($file['type'], $allowed_types)) {
+        $_SESSION['profile_msg'] = "Error: Only image files (JPEG, PNG, GIF, WEBP) are allowed.";
+        header("Location: user_profile.php");
+        exit;
+    }
+    
+    // Validate file size
+    if ($file['size'] > $max_size) {
+        $_SESSION['profile_msg'] = "Error: File size exceeds 2MB limit.";
+        header("Location: user_profile.php");
+        exit;
+    }
+    
+    // Create profile_pics directory if it doesn't exist
+    if (!file_exists('profile_pics')) {
+        mkdir('profile_pics', 0755, true);
+    }
+    
+    // Generate unique filename
+    $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $new_filename = 'profile_' . $user_id . '_' . uniqid() . '.' . $file_extension;
+    $upload_path = 'profile_pics/' . $new_filename;
+    
+    // Move uploaded file
+    if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+        // Delete old profile picture if exists
+        $stmt = $conn->prepare("SELECT profile_picture FROM user_profiles WHERE user_id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $old_profile = $result->fetch_assoc();
+            if (!empty($old_profile['profile_picture']) && file_exists('profile_pics/' . $old_profile['profile_picture'])) {
+                unlink('profile_pics/' . $old_profile['profile_picture']);
+            }
+        }
+        
+        $profile_picture = $new_filename;
+    } else {
+        $_SESSION['profile_msg'] = "Error uploading file. Please try again.";
+        header("Location: user_profile.php");
+        exit;
+    }
+}
+
 // Optional: Validate fields more thoroughly here
 $stmt = $conn->prepare("SELECT user_id FROM user_profiles WHERE user_id = ?");
 $stmt->bind_param("i", $user_id);
@@ -26,20 +80,30 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     // Update
-    $stmt = $conn->prepare("UPDATE user_profiles SET dob=?, gender=?, occupation=?, education_level=?, bio=?, alternate_phone=?, alternate_email=? WHERE user_id=?");
-    $stmt->bind_param("sssssssi", $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email, $user_id);
+    if ($profile_picture) {
+        $stmt = $conn->prepare("UPDATE user_profiles SET dob=?, gender=?, occupation=?, education_level=?, bio=?, alternate_phone=?, alternate_email=?, profile_picture=? WHERE user_id=?");
+        $stmt->bind_param("ssssssssi", $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email, $profile_picture, $user_id);
+    } else {
+        $stmt = $conn->prepare("UPDATE user_profiles SET dob=?, gender=?, occupation=?, education_level=?, bio=?, alternate_phone=?, alternate_email=? WHERE user_id=?");
+        $stmt->bind_param("sssssssi", $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email, $user_id);
+    }
 } else {
     // Insert
-    $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, dob, gender, occupation, education_level, bio, alternate_phone, alternate_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("isssssss", $user_id, $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email);
+    if ($profile_picture) {
+        $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, dob, gender, occupation, education_level, bio, alternate_phone, alternate_email, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issssssss", $user_id, $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email, $profile_picture);
+    } else {
+        $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, dob, gender, occupation, education_level, bio, alternate_phone, alternate_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("isssssss", $user_id, $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email);
+    }
 }
 
 if ($stmt->execute()) {
     $_SESSION['profile_msg'] = "Profile updated successfully.";
 } else {
-    $_SESSION['profile_msg'] = "Error updating profile.";
+    $_SESSION['profile_msg'] = "Error updating profile: " . $stmt->error;
 }
 
-header("Location: user-dashboard.php");
+header("Location: user_profile.php");
 exit;
 ?>
