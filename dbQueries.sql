@@ -65,3 +65,12 @@ CREATE TABLE user_profiles (
 );
 ALTER TABLE user_profiles MODIFY gender VARCHAR(10);
 ALTER TABLE user_profiles MODIFY dob DATE NULL;
+
+CREATE TABLE account_activity (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    action_type VARCHAR(100),
+    action_description TEXT,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+);
