@@ -29,15 +29,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id'] = $_SESSION['user_temp_id'];
         $_SESSION['role'] = $_SESSION['user_temp_role'];
 
+        // Log the successful login directly with SQL
+        require_once 'dbConnection.php';
+        
+        // Get IP address
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
+        
+        // Get browser and device information
+        $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+        $browser = '';
+        $device_type = '';
+        
+        // Parse user agent to determine browser
+        if (strpos($user_agent, 'Firefox') !== false) {
+            $browser = 'Firefox';
+        } elseif (strpos($user_agent, 'Chrome') !== false && strpos($user_agent, 'Edg') !== false) {
+            $browser = 'Edge';
+        } elseif (strpos($user_agent, 'Chrome') !== false) {
+            $browser = 'Chrome';
+        } elseif (strpos($user_agent, 'Safari') !== false) {
+            $browser = 'Safari';
+        } elseif (strpos($user_agent, 'MSIE') !== false || strpos($user_agent, 'Trident') !== false) {
+            $browser = 'Internet Explorer';
+        } else {
+            $browser = 'Other';
+        }
+        
+        // Parse user agent to determine device type
+        if (strpos($user_agent, 'Mobile') !== false || strpos($user_agent, 'Android') !== false) {
+            $device_type = 'Mobile';
+        } elseif (strpos($user_agent, 'Tablet') !== false || strpos($user_agent, 'iPad') !== false) {
+            $device_type = 'Tablet';
+        } else {
+            $device_type = 'Desktop';
+        }
+        
+        // Log the login activity
+        $action_type = "LOGIN";
+        $action_description = "User logged in";
+        
+        $stmt = $conn->prepare("INSERT INTO account_activity (user_id, action_type, action_description, ip_address, browser, device_type) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("isssss", $_SESSION['user_id'], $action_type, $action_description, $ip_address, $browser, $device_type);
+        $stmt->execute();
+        $stmt->close();
+
         unset($_SESSION['otp'], $_SESSION['user_temp_id'], $_SESSION['user_temp_role']);
 
+        // Redirect based on user role
+        $redirect_url = '';
         if ($_SESSION['role'] == 'user') {
-            header("Location: user-dashboard.php");
+            $redirect_url = 'user-dashboard.php';
         } elseif ($_SESSION['role'] == 'partner') {
-            header("Location: partner-dashboard.php");
+            $redirect_url = 'partner-dashboard.php';
         } elseif ($_SESSION['role'] == 'super_admin') {
-            header("Location: admin-dashboard.php");
+            $redirect_url = 'admin-dashboard.php';
         }
+        
+        // Ensure no output before redirection
+        ob_end_clean();
+        header("Location: " . $redirect_url);
         exit;
     } else {
         $message = "Incorrect OTP. Try again.";
@@ -53,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <h2>Enter OTP</h2>
-    echo <?=$_SESSION['user_temp_id'] ?>
+    <p>User ID: <?=$_SESSION['user_temp_id'] ?></p>
     <p>For demo purposes, your OTP is: <strong><?= $_SESSION['otp'] ?></strong></p>
 
     <form method="POST" class="otp-form" id="otpForm">

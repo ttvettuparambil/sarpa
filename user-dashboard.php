@@ -154,6 +154,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
 
     <hr>
     <a href="snake-sighting-form.php">📢 Report Snake Sighting</a><br>
+    <a href="user_log.php">📋 View Activity Log</a><br>
     <a href="logout.php">🔓 Logout</a>
 
     <!-- Snake Sightings Chart -->

@@ -99,6 +99,48 @@ if ($result->num_rows > 0) {
 }
 
 if ($stmt->execute()) {
+    // Log the profile update directly with SQL
+    // Get IP address
+    $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
+    
+    // Get browser and device information
+    $user_agent = $_SERVER['HTTP_USER_AGENT'] ?? '';
+    $browser = '';
+    $device_type = '';
+    
+    // Parse user agent to determine browser
+    if (strpos($user_agent, 'Firefox') !== false) {
+        $browser = 'Firefox';
+    } elseif (strpos($user_agent, 'Chrome') !== false && strpos($user_agent, 'Edg') !== false) {
+        $browser = 'Edge';
+    } elseif (strpos($user_agent, 'Chrome') !== false) {
+        $browser = 'Chrome';
+    } elseif (strpos($user_agent, 'Safari') !== false) {
+        $browser = 'Safari';
+    } elseif (strpos($user_agent, 'MSIE') !== false || strpos($user_agent, 'Trident') !== false) {
+        $browser = 'Internet Explorer';
+    } else {
+        $browser = 'Other';
+    }
+    
+    // Parse user agent to determine device type
+    if (strpos($user_agent, 'Mobile') !== false || strpos($user_agent, 'Android') !== false) {
+        $device_type = 'Mobile';
+    } elseif (strpos($user_agent, 'Tablet') !== false || strpos($user_agent, 'iPad') !== false) {
+        $device_type = 'Tablet';
+    } else {
+        $device_type = 'Desktop';
+    }
+    
+    // Log the profile update activity
+    $action_type = "PROFILE_UPDATE";
+    $action_description = "Profile updated";
+    
+    $log_stmt = $conn->prepare("INSERT INTO account_activity (user_id, action_type, action_description, ip_address, browser, device_type) VALUES (?, ?, ?, ?, ?, ?)");
+    $log_stmt->bind_param("isssss", $user_id, $action_type, $action_description, $ip_address, $browser, $device_type);
+    $log_stmt->execute();
+    $log_stmt->close();
+    
     $_SESSION['profile_msg'] = "Profile updated successfully.";
 } else {
     $_SESSION['profile_msg'] = "Error updating profile: " . $stmt->error;
