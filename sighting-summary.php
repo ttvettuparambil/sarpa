@@ -5,7 +5,9 @@ require_once 'config.php';
 
 // Initialize complaint_id variable
 $complaint_id = null;
-
+if (!isset($_SESSION['user_id'])) {
+  header("Location: login.php");
+}
 // First check if complaint_id exists in URL query parameter
 if (isset($_GET['complaint_id']) && !empty($_GET['complaint_id'])) {
     // Sanitize the input to prevent XSS attacks
@@ -255,10 +257,20 @@ $data = $result->fetch_assoc();
     }
   </style>
   <!-- No external API script needed as we're using fetch API -->
+   <!-- Add jsPDF from CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 </head>
 <body>
 
 <div class="summary-container">
+<button onclick="downloadPDF()" class="download-btn">Download as PDF</button>
+
+<form method="post" action="export-csv.php">
+  <button type="submit" class="btn btn-primary">Export My Sightings (CSV)</button>
+</form>
+
+
   <?php if (!isset($_GET['complaint_id'])): ?>
   <button id="shareButton" class="share-button">
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -614,6 +626,103 @@ $data = $result->fetch_assoc();
   window.onload = function() {
     analyzeSnakeImage();
   };
+
+// code for PDF doenload
+
+  async function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4"
+    });
+
+    let y = 15;
+
+    // Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Snake Sighting Summary", 105, y, { align: "center" });
+    y += 15;
+
+    // Extracted PHP data
+    const data = {
+      complaint_id: "<?= htmlspecialchars($data['complaint_id']) ?>",
+      district: "<?= htmlspecialchars($data['district']) ?>",
+      city: "<?= htmlspecialchars($data['city']) ?>",
+      postcode: "<?= htmlspecialchars($data['postcode']) ?>",
+      address1: "<?= htmlspecialchars($data['address_line1']) ?>",
+      address2: "<?= htmlspecialchars($data['address_line2']) ?>",
+      landmark: "<?= htmlspecialchars($data['landmark']) ?>",
+      datetime: "<?= htmlspecialchars($data['datetime']) ?>",
+      description: `<?= nl2br(htmlspecialchars($data['description'] ?? '')) ?>`,
+      name: "<?= htmlspecialchars($data['user_name'] ?? 'N/A') ?>",
+      email: "<?= htmlspecialchars($data['user_email'] ?? 'N/A') ?>",
+      phone: "<?= htmlspecialchars($data['user_phone'] ?? 'N/A') ?>",
+      image_path: "<?= htmlspecialchars($data['image_path'] ?? '') ?>"
+    };
+
+    // Fields to render
+    const fields = [
+      ["Complaint ID:", data.complaint_id, true],
+      ["District:", data.district],
+      ["City:", data.city],
+      ["Postcode:", data.postcode],
+      ["Address 1:", data.address1],
+      ["Address 2:", data.address2],
+      ["Landmark:", data.landmark],
+      ["Sighting Time:", data.datetime],
+      ["Description:", data.description],
+      ["Submitted by:", `${data.name} (${data.email} / ${data.phone})`],
+    ];
+
+    // Loop and render
+    doc.setFontSize(12);
+    for (const [label, value, bold] of fields) {
+      if (bold) {
+        doc.setFont("helvetica", "bold");
+      } else {
+        doc.setFont("helvetica", "normal");
+      }
+      doc.text(`${label}`, 10, y);
+      doc.setFont("helvetica", "normal");
+      doc.text(`${value}`, 50, y);
+      y += 8;
+    }
+
+    // Add image if available
+    if (data.image_path) {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.src = data.image_path;
+
+      img.onload = function () {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        const imgData = canvas.toDataURL("image/jpeg");
+
+        doc.addPage();
+        doc.setFontSize(14);
+        doc.text("Uploaded Image", 10, 20);
+        doc.addImage(imgData, 'JPEG', 10, 30, 180, 120); // Resize as needed
+        doc.save(`SARPA_Complaint_${data.complaint_id}.pdf`);
+      };
+
+      img.onerror = function () {
+        alert("Unable to load image for PDF.");
+      };
+    } else {
+      doc.save(`SARPA_Complaint_${data.complaint_id}.pdf`);
+    }
+  }
+
+
+
+
 </script>
 
 </body>
