@@ -29,6 +29,21 @@ mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 
 $user = mysqli_fetch_assoc($result);
+
+// Fetch user's past snake sightings
+$sightings_sql = "SELECT s.id, s.complaint_id, s.district, s.city, 
+                 CONCAT(s.address_line1, IF(s.address_line2 IS NOT NULL, CONCAT(', ', s.address_line2), '')) AS location,
+                 s.datetime AS sighting_date, s.description, s.image_path
+                 FROM snake_sightings s 
+                 WHERE s.user_email = ? 
+                 ORDER BY s.datetime DESC";
+$sightings_stmt = mysqli_prepare($conn, $sightings_sql);
+mysqli_stmt_bind_param($sightings_stmt, "s", $user['email']);
+mysqli_stmt_execute($sightings_stmt);
+$sightings_result = mysqli_stmt_get_result($sightings_stmt);
+
+// Check if there are any sightings
+$has_sightings = mysqli_num_rows($sightings_result) > 0;
 ?>
 
 <!DOCTYPE html>
@@ -38,6 +53,10 @@ $user = mysqli_fetch_assoc($result);
     <link rel="stylesheet" href="style.css">
     <!-- Chart.js Library -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- DataTables CSS and JS -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     <style>
         .chart-container {
             width: 80%;
@@ -79,11 +98,57 @@ $user = mysqli_fetch_assoc($result);
             color: white;
             border-color: #2a7d46;
         }
+        
+        .table-container {
+            width: 90%;
+            margin: 30px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2a7d46;
+        }
+
+        .no-data-message {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .view-btn {
+            display: inline-block;
+            padding: 5px 10px;
+            background-color: #2a7d46;
+            color: white;
+            text-decoration: none;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+
+        .view-btn:hover {
+            background-color: #1e5d33;
+        }
+
+        #sightingsTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #sightingsTable th, #sightingsTable td {
+            padding: 10px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
     <h2>Welcome to SARPA, <?= htmlspecialchars($user['first_name']) ?> 👋</h2>
-
+    <a href="/user_profile.php">User Profile</a>
     <p><strong>Session User ID:</strong> <?= $_SESSION['user_id'] ?></p>
     <p><strong>Email:</strong> <?= htmlspecialchars($user['email']) ?></p>
 
@@ -100,6 +165,44 @@ $user = mysqli_fetch_assoc($result);
             <button id="year-btn" class="filter-button">Year</button>
         </div>
         <canvas id="sightingsChart"></canvas>
+    </div>
+    
+    <!-- Past Sightings Table -->
+    <div class="table-container">
+        <h3 class="section-title">Past Sightings</h3>
+        
+        <?php if ($has_sightings): ?>
+            <table id="sightingsTable" class="display">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Complaint ID</th>
+                        <th>District</th>
+                        <th>Location</th>
+                        <th>Date & Time</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php while ($sighting = mysqli_fetch_assoc($sightings_result)): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($sighting['id']) ?></td>
+                            <td><?= htmlspecialchars($sighting['complaint_id']) ?></td>
+                            <td><?= htmlspecialchars($sighting['district']) ?></td>
+                            <td><?= htmlspecialchars($sighting['location']) ?></td>
+                            <td><?= htmlspecialchars(date('M d, Y H:i', strtotime($sighting['sighting_date']))) ?></td>
+                            <td>
+                                <a href="sighting-summary.php?complaint_id=<?= $sighting['complaint_id'] ?>" class="view-btn">View</a>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
+        <?php else: ?>
+            <div class="no-data-message">
+                <p>No past sightings found. When you report snake sightings, they will appear here.</p>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Session Expiry Warning Message -->
@@ -284,6 +387,19 @@ $user = mysqli_fetch_assoc($result);
                 // Update current period and reload data
                 currentPeriod = period;
                 loadChartData(period);
+            }
+            
+            // Initialize DataTable for sightings
+            if (document.getElementById('sightingsTable')) {
+                $('#sightingsTable').DataTable({
+                    responsive: true,
+                    order: [[4, 'desc']], // Sort by date column (index 4) in descending order
+                    language: {
+                        emptyTable: "No past sightings found"
+                    },
+                    pageLength: 5,
+                    lengthMenu: [[5, 10, 25, -1], [5, 10, 25, "All"]]
+                });
             }
         });
 
