@@ -60,59 +60,191 @@ if (isset($_SESSION['user_id'])) {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en" class="light">
 <head>
-    <title>Snake Sighting Form</title>
-    <link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Snake Sighting - SARPA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        // Using Tailwind's default blue palette
+                    }
+                }
+            }
+        }
+        
+        // Check for dark mode preference in localStorage
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
-    <style>
-        .dropzone {
-            border: 2px dashed #ccc;
-            border-radius: 5px;
-            padding: 25px;
-            text-align: center;
-            margin: 10px 0;
-            background-color: #f9f9f9;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .dropzone.dragover {
-            border-color: #4CAF50;
-            background-color: rgba(76, 175, 80, 0.1);
-        }
-        .dropzone.error {
-            border-color: #f44336;
-            background-color: rgba(244, 67, 54, 0.1);
-        }
-        .dropzone p {
-            margin: 5px 0;
-        }
-        .dropzone .icon {
-            font-size: 32px;
-            color: #666;
-        }
-        .file-info {
-            margin-top: 10px;
-            display: none;
-        }
-        .file-preview {
-            max-width: 100%;
-            max-height: 200px;
-            margin-top: 10px;
-            display: none;
-            border-radius: 5px;
-        }
-        .error-message {
-            color: #f44336;
-            margin-top: 5px;
-            display: none;
-        }
-        .file-input-container {
-            display: none;
-        }
-    </style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen flex flex-col transition-colors duration-200">
+    <?php include 'components/header.php'; ?>
+    
+    <main class="flex-grow container mx-auto px-4 py-8">
+        <?php include 'components/alerts.php'; ?>
+        
+        <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                    <span class="text-3xl mr-2">🐍</span> Report Snake Sighting
+                </h1>
+                <p class="text-gray-600 dark:text-gray-400 mt-1">
+                    Fill out this form to report a snake sighting in your area. Our team will respond promptly.
+                </p>
+            </div>
+            
+            <form method="POST" action="submit-sighting.php" enctype="multipart/form-data" class="p-6">
+                <!-- Address Details Section -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Address Details</h2>
+                    
+                    <?php if ($userLoggedIn): ?>
+                    <div class="mb-4">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" id="populateAddress" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
+                            <span class="ml-2 text-gray-700 dark:text-gray-300">Populate address from account</span>
+                        </label>
+                    </div>
+                    <?php endif; ?>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="district" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">District (Kerala)</label>
+                            <select id="district" name="district" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                <option value="">--Select--</option>
+                                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                                <option value="Kollam">Kollam</option>
+                                <option value="Pathanamthitta">Pathanamthitta</option>
+                                <option value="Alappuzha">Alappuzha</option>
+                                <option value="Kottayam">Kottayam</option>
+                                <option value="Idukki">Idukki</option>
+                                <option value="Ernakulam">Ernakulam</option>
+                                <option value="Thrissur">Thrissur</option>
+                                <option value="Palakkad">Palakkad</option>
+                                <option value="Malappuram">Malappuram</option>
+                                <option value="Kozhikode">Kozhikode</option>
+                                <option value="Wayanad">Wayanad</option>
+                                <option value="Kannur">Kannur</option>
+                                <option value="Kasaragod">Kasaragod</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">City/Town</label>
+                            <input type="text" id="city" name="city" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label for="postcode" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Postcode</label>
+                            <input type="text" id="postcode" name="postcode" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label for="address1" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address Line 1</label>
+                            <input type="text" id="address1" name="address1" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label for="address2" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address Line 2</label>
+                            <input type="text" id="address2" name="address2" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label for="landmark" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Landmark</label>
+                            <input type="text" id="landmark" name="landmark" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Snake Details Section -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Snake Details</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="md:col-span-2">
+                            <label for="sighting_time" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date and Time of Sighting</label>
+                            <input type="datetime-local" id="sighting_time" name="sighting_time" required class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Upload Snake Image (Max 5MB)</label>
+                            
+                            <!-- Drag & Drop Zone -->
+                            <div id="dropzone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200">
+                                <div class="text-3xl text-gray-400 dark:text-gray-500 mb-2">📁</div>
+                                <p class="text-gray-700 dark:text-gray-300">Drag & drop an image here or click to select</p>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Only image files allowed (JPG, PNG, GIF, etc.)</p>
+                                <div id="error-message" class="text-red-500 mt-2 hidden"></div>
+                                <img id="image-preview" class="max-w-full max-h-48 mx-auto mt-4 rounded-lg hidden" src="" alt="Image preview">
+                                <div id="file-info" class="text-sm text-gray-600 dark:text-gray-400 mt-2 hidden"></div>
+                            </div>
+                            <div class="hidden">
+                                <input type="file" id="file-input" name="image" accept="image/*">
+                            </div>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" id="toggleDescription" class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50 dark:bg-gray-700 dark:border-gray-600">
+                                <span class="ml-2 text-gray-700 dark:text-gray-300">Add Snake Description</span>
+                            </label>
+                            
+                            <div id="snakeDescriptionContainer" class="mt-4 hidden">
+                                <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Snake Description</label>
+                                <textarea id="description" name="description" rows="4" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reporter Info Section -->
+                <div class="mb-8">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">Reporter Info (Optional)</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
+                            <input type="text" id="name" name="name" value="<?php echo isset($userData['first_name']) && isset($userData['last_name']) ? htmlspecialchars($userData['first_name'] . ' ' . $userData['last_name']) : ''; ?>" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div>
+                            <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone</label>
+                            <input type="text" id="phone" name="phone" value="<?php echo isset($userData['phone']) ? htmlspecialchars($userData['phone']) : ''; ?>" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Email</label>
+                            <input type="email" id="email" name="email" value="<?php echo isset($userData['email']) ? htmlspecialchars($userData['email']) : ''; ?>" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex justify-end">
+                    <button type="submit" class="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-300 flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                        </svg>
+                        Submit Sighting
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+    
+    <?php include 'components/footer.php'; ?>
+    
     <script>
     // Store user data in JavaScript variables
     <?php if ($userLoggedIn && $userData): ?>
@@ -141,7 +273,7 @@ if (isset($_SESSION['user_id'])) {
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         
         // Initialize Flatpickr for date-time selection
-        flatpickr("input[name='sighting_time']", {
+        flatpickr("#sighting_time", {
             enableTime: true,
             dateFormat: "Y-m-d H:i",
             time_24hr: true,
@@ -171,7 +303,7 @@ if (isset($_SESSION['user_id'])) {
         
         // Add form validation
         document.querySelector('form').addEventListener('submit', function(event) {
-            const dateTimeInput = document.querySelector('input[name="sighting_time"]');
+            const dateTimeInput = document.querySelector('#sighting_time');
             if (!dateTimeInput.value) {
                 event.preventDefault();
                 alert('Please select a date and time for the snake sighting.');
@@ -179,9 +311,9 @@ if (isset($_SESSION['user_id'])) {
         });
         
         // Toggle description section
-        document.getElementById('toggleDescription').addEventListener('click', function() {
+        document.getElementById('toggleDescription').addEventListener('change', function() {
             const description = document.getElementById('snakeDescriptionContainer');
-            description.style.display = this.checked ? 'block' : 'none';
+            description.classList.toggle('hidden', !this.checked);
         });
         
         // Handle populate address checkbox
@@ -202,7 +334,7 @@ if (isset($_SESSION['user_id'])) {
         if (!userData) return;
         
         // Set district dropdown
-        const districtSelect = document.querySelector('select[name="district"]');
+        const districtSelect = document.querySelector('#district');
         if (districtSelect && userData.district) {
             for (let i = 0; i < districtSelect.options.length; i++) {
                 if (districtSelect.options[i].value === userData.district) {
@@ -213,21 +345,21 @@ if (isset($_SESSION['user_id'])) {
         }
         
         // Set text input fields
-        document.querySelector('input[name="city"]').value = userData.city || '';
-        document.querySelector('input[name="postcode"]').value = userData.postcode || '';
-        document.querySelector('input[name="address1"]').value = userData.address_line1 || '';
-        document.querySelector('input[name="address2"]').value = userData.address_line2 || '';
-        document.querySelector('input[name="landmark"]').value = userData.landmark || '';
+        document.querySelector('#city').value = userData.city || '';
+        document.querySelector('#postcode').value = userData.postcode || '';
+        document.querySelector('#address1').value = userData.address_line1 || '';
+        document.querySelector('#address2').value = userData.address_line2 || '';
+        document.querySelector('#landmark').value = userData.landmark || '';
     }
     
     // Function to clear address fields
     function clearAddressFields() {
-        document.querySelector('select[name="district"]').selectedIndex = 0;
-        document.querySelector('input[name="city"]').value = '';
-        document.querySelector('input[name="postcode"]').value = '';
-        document.querySelector('input[name="address1"]').value = '';
-        document.querySelector('input[name="address2"]').value = '';
-        document.querySelector('input[name="landmark"]').value = '';
+        document.querySelector('#district').selectedIndex = 0;
+        document.querySelector('#city').value = '';
+        document.querySelector('#postcode').value = '';
+        document.querySelector('#address1').value = '';
+        document.querySelector('#address2').value = '';
+        document.querySelector('#landmark').value = '';
     }
     
     // Function to initialize drag and drop functionality
@@ -278,12 +410,18 @@ if (isset($_SESSION['user_id'])) {
         });
         
         function highlight() {
-            dropzone.classList.add('dragover');
+            dropzone.classList.add('border-blue-500');
+            dropzone.classList.add('bg-blue-50');
+            dropzone.classList.add('dark:bg-blue-900/20');
         }
         
         function unhighlight() {
-            dropzone.classList.remove('dragover');
-            dropzone.classList.remove('error');
+            dropzone.classList.remove('border-blue-500');
+            dropzone.classList.remove('bg-blue-50');
+            dropzone.classList.remove('dark:bg-blue-900/20');
+            dropzone.classList.remove('border-red-500');
+            dropzone.classList.remove('bg-red-50');
+            dropzone.classList.remove('dark:bg-red-900/20');
         }
         
         // Handle dropped files
@@ -298,8 +436,7 @@ if (isset($_SESSION['user_id'])) {
         // Process the files
         function handleFiles(files) {
             // Reset error state
-            errorMessage.style.display = 'none';
-            dropzone.classList.remove('error');
+            errorMessage.classList.add('hidden');
             
             // Check if any files were selected
             if (files.length === 0) {
@@ -333,13 +470,13 @@ if (isset($_SESSION['user_id'])) {
             
             // Show file info
             fileInfo.textContent = file.name + ' (' + formatFileSize(file.size) + ')';
-            fileInfo.style.display = 'block';
+            fileInfo.classList.remove('hidden');
             
             // Show image preview
             const reader = new FileReader();
             reader.onload = function(e) {
                 imagePreview.src = e.target.result;
-                imagePreview.style.display = 'block';
+                imagePreview.classList.remove('hidden');
             };
             reader.readAsDataURL(file);
         }
@@ -354,109 +491,19 @@ if (isset($_SESSION['user_id'])) {
         // Show error message
         function showError(message) {
             errorMessage.textContent = message;
-            errorMessage.style.display = 'block';
-            dropzone.classList.add('error');
+            errorMessage.classList.remove('hidden');
+            dropzone.classList.add('border-red-500');
+            dropzone.classList.add('bg-red-50');
+            dropzone.classList.add('dark:bg-red-900/20');
             
             // Clear file input
             fileInput.value = '';
             
             // Hide preview and file info
-            imagePreview.style.display = 'none';
-            fileInfo.style.display = 'none';
+            imagePreview.classList.add('hidden');
+            fileInfo.classList.add('hidden');
         }
     }
 </script>
-</head>
-<body>
-    <h2>🐍 Report Snake Sighting</h2>
-    <form method="POST" action="submit-sighting.php" enctype="multipart/form-data">
-        <fieldset>
-            <legend>Address Details</legend>
-            <?php if ($userLoggedIn): ?>
-            <div style="margin-bottom: 15px;">
-                <label>
-                    <input type="checkbox" id="populateAddress"> Populate address from account
-                </label>
-            </div>
-            <?php endif; ?>
-            <label for="district">District (Kerala):</label>
-            <select name="district" required>
-                <option value="">--Select--</option>
-                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
-                <option value="Kollam">Kollam</option>
-                <option value="Pathanamthitta">Pathanamthitta</option>
-                <option value="Alappuzha">Alappuzha</option>
-                <option value="Kottayam">Kottayam</option>
-                <option value="Idukki">Idukki</option>
-                <option value="Ernakulam">Ernakulam</option>
-                <option value="Thrissur">Thrissur</option>
-                <option value="Palakkad">Palakkad</option>
-                <option value="Malappuram">Malappuram</option>
-                <option value="Kozhikode">Kozhikode</option>
-                <option value="Wayanad">Wayanad</option>
-                <option value="Kannur">Kannur</option>
-                <option value="Kasaragod">Kasaragod</option>
-            </select><br>
-
-            <label for="city">City/Town:</label>
-            <input type="text" name="city" required><br>
-
-            <label for="postcode">Postcode:</label>
-            <input type="text" name="postcode"><br>
-
-            <label for="address1">Address Line 1:</label>
-            <input type="text" name="address1" required><br>
-
-            <label for="address2">Address Line 2:</label>
-            <input type="text" name="address2"><br>
-
-            <label for="landmark">Landmark:</label>
-            <input type="text" name="landmark"><br>
-        </fieldset>
-
-        <fieldset>
-            <legend>Snake Details</legend>
-            <label for="sighting_time">Date and Time of Sighting:</label>
-            <input type="datetime-local" name="sighting_time" required><br>
-
-            <label>Upload Snake Image (Max 5MB):</label>
-            <div id="dropzone" class="dropzone">
-                <div class="icon">📁</div>
-                <p>Drag & drop an image here or click to select</p>
-                <p class="small">Only image files allowed (JPG, PNG, GIF, etc.)</p>
-                <div class="error-message" id="error-message"></div>
-                <img id="image-preview" class="file-preview" src="" alt="Image preview">
-                <div id="file-info" class="file-info"></div>
-            </div>
-            <div class="file-input-container">
-                <input type="file" id="file-input" name="image" accept="image/*">
-            </div><br>
-
-            <label>
-                <input type="checkbox" id="toggleDescription"> Add Snake Description
-            </label>
-
-            <div id="snakeDescriptionContainer" style="display:none;">
-                <label for="description">Snake Description:</label><br>
-                <textarea name="description" rows="4" cols="50"></textarea>
-            </div>
-        </fieldset>
-
-        <fieldset>
-            <legend>Reporter Info (Optional)</legend>
-            <label for="name">Your Name:</label>
-            <input type="text" name="name" value="<?php echo isset($userData['first_name']) && isset($userData['last_name']) ? htmlspecialchars($userData['first_name'] . ' ' . $userData['last_name']) : ''; ?>"><br>
-
-            <label for="phone">Phone:</label>
-            <input type="text" name="phone" value="<?php echo isset($userData['phone']) ? htmlspecialchars($userData['phone']) : ''; ?>"><br>
-
-            <label for="email">Email:</label>
-            <input type="email" name="email" value="<?php echo isset($userData['email']) ? htmlspecialchars($userData['email']) : ''; ?>"><br>
-        </fieldset>
-
-        <button type="submit">📤 Submit Sighting</button>
-
-    </form>
-  
 </body>
 </html>

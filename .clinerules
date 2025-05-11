@@ -1,0 +1,149 @@
+# SARPA Project Rules and Patterns
+
+## Coding Conventions
+
+### PHP Conventions
+
+- Use PHP 7.4+ syntax where possible
+- Always use prepared statements for database queries
+- Include proper error handling for all database operations
+- Use session_start() at the beginning of each page that requires session access
+- Validate all user inputs on both client and server sides
+- Sanitize outputs with htmlspecialchars() when displaying user-provided data
+
+### Frontend Conventions
+
+- Use Tailwind utility classes for styling
+- Maintain consistent component structure with PHP includes
+- Implement responsive design for all screen sizes
+- Support dark mode with appropriate color adjustments
+- Use semantic HTML elements for better accessibility
+- Ensure proper ARIA attributes for interactive elements
+
+### JavaScript Conventions
+
+- Use vanilla JavaScript where possible
+- Avoid jQuery except for DataTables integration
+- Use event delegation for dynamically created elements
+- Implement proper error handling for all AJAX requests
+- Use localStorage for persistent user preferences (e.g., dark mode)
+
+## File Structure Patterns
+
+### Component Organization
+
+- Place all reusable components in the `components/` directory
+- Use consistent naming conventions for component files
+- Include clear comments at the top of each component file explaining its purpose
+
+### Image Handling
+
+- Store user-uploaded images in the `uploads/` directory
+- Store profile pictures in the `profile_pics/` directory
+- Use appropriate image compression for web display
+- Implement proper validation for uploaded files
+
+## UI Patterns
+
+### Color Scheme
+
+- Primary Blue: Tailwind's blue-600 (#2563eb)
+- Secondary Blue: Tailwind's blue-400 (#60a5fa)
+- Background: White (#ffffff) for light mode, gray-900 (#111827) for dark mode
+- Text: gray-800 (#1f2937) for light mode, white (#ffffff) for dark mode
+- Accent colors: Use Tailwind's color palette for consistency
+
+### Form Design
+
+- Use consistent input styling across all forms
+- Provide clear validation feedback
+- Group related form fields logically
+- Use appropriate input types for different data
+- Implement accessible labels and error messages
+
+### Button Styles
+
+- Primary actions: blue-600 background with white text
+- Secondary actions: white/gray background with colored text
+- Danger actions: red-600 background with white text
+- Include hover and focus states for all buttons
+- Use consistent sizing and padding
+
+### Alert Messages
+
+- Success: green background with dark green text
+- Error: red background with dark red text
+- Warning: yellow background with dark yellow text
+- Info: blue background with dark blue text
+- Include appropriate icons for different alert types
+
+## Authentication Patterns
+
+### Login Flow
+
+1. User enters email and password
+2. System validates credentials
+3. If valid, OTP is generated and sent
+4. User enters OTP for verification
+5. Session is created with appropriate timeout
+
+### Session Management
+
+- 10-minute inactivity timeout
+- Warning shown 2 minutes before expiration
+- Option to extend session without re-authentication
+- Clear session data on logout or timeout
+
+## Data Visualization Patterns
+
+### Chart Configuration
+
+- Use consistent colors across all charts
+- Provide appropriate legends and labels
+- Ensure charts adapt to theme changes
+- Use appropriate chart types for different data
+- Include responsive behavior for different screen sizes
+
+### Table Display
+
+- Use DataTables for enhanced table functionality
+- Implement consistent styling for all tables
+- Include pagination for large datasets
+- Provide sorting and filtering options where appropriate
+- Ensure responsive behavior for mobile devices
+
+## Project-Specific Workflows
+
+### Snake Sighting Reporting
+
+1. User navigates to the reporting form
+2. User fills in location and snake details
+3. User uploads an image (optional)
+4. System validates and processes the submission
+5. User receives confirmation and complaint ID
+
+### User Dashboard Interaction
+
+1. User views summary statistics on dashboard
+2. User can filter data by time period (week, month, year)
+3. User can view detailed information about past sightings
+4. User can navigate to profile management or activity log
+
+## Development Workflow
+
+### Feature Implementation
+
+1. Understand the existing functionality
+2. Plan the implementation approach
+3. Create or update necessary components
+4. Implement the feature with proper error handling
+5. Test on different devices and browsers
+6. Document any new patterns or decisions
+
+### Bug Fixing
+
+1. Reproduce the issue consistently
+2. Identify the root cause
+3. Implement a fix that maintains compatibility
+4. Test thoroughly to ensure no regression
+5. Document the solution for future reference
