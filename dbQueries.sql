@@ -74,3 +74,38 @@ CREATE TABLE account_activity (
     timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id)
 );
+
+CREATE TABLE user_video_progress (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    video_id VARCHAR(20) NOT NULL,
+    timestamp INT DEFAULT 0,
+    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    UNIQUE KEY unique_user_video (user_id, video_id)
+);
+
+INSERT INTO users (
+    role,
+    first_name,
+    last_name,
+    email,
+    password,
+    created_at
+) VALUES (
+    'super_admin',
+    'Super',
+    'Administrator',
+    'admin@sarpa.com',
+    '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', -- password: 'password'
+    CURRENT_TIMESTAMP
+);
+
+CREATE TABLE contact_messages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    message TEXT NOT NULL,
+    submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
