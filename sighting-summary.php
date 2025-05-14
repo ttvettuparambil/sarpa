@@ -78,187 +78,304 @@ $data = $result->fetch_assoc();
   </script>
   <!-- Add jsPDF from CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    /* Skeleton Loading Animation */
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 1000px 100%;
+      animation: shimmer 2s infinite linear;
+    }
+
+    .dark .skeleton {
+      background: linear-gradient(90deg, #2d3748 25%, #1a202c 50%, #2d3748 75%);
+      background-size: 1000px 100%;
+      animation: shimmer 2s infinite linear;
+    }
+
+    .skeleton-text {
+      height: 1em;
+      margin-bottom: 0.5em;
+      border-radius: 4px;
+    }
+
+    .skeleton-title {
+      height: 2em;
+      margin-bottom: 1em;
+      border-radius: 4px;
+    }
+
+    .skeleton-image {
+      height: 200px;
+      border-radius: 8px;
+      margin-bottom: 1em;
+    }
+
+    .skeleton-button {
+      height: 2.5em;
+      width: 150px;
+      border-radius: 6px;
+      margin-bottom: 1em;
+    }
+
+    #skeleton-loader {
+      display: none;
+    }
+
+    .loading #skeleton-loader {
+      display: block;
+    }
+
+    .loading #main-content {
+      display: none;
+    }
+  </style>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen flex flex-col transition-colors duration-200">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen flex flex-col transition-colors duration-200 loading">
   <?php include 'components/header.php'; ?>
   
   <main class="flex-grow py-8">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Summary Container -->
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 md:p-8 relative mb-8">
-        <!-- Download & Export Buttons -->
+      <!-- Skeleton Loader -->
+      <div id="skeleton-loader" class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 md:p-8 relative mb-8">
+        <!-- Skeleton Buttons -->
         <div class="flex flex-wrap gap-3 mb-6">
-          <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
-            </svg>
-            Download as PDF
-          </button>
+          <div class="skeleton skeleton-button"></div>
+          <div class="skeleton skeleton-button"></div>
+        </div>
 
-          <form method="post" action="export-csv.php">
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
+        <!-- Skeleton Title -->
+        <div class="skeleton skeleton-title w-3/4 mb-4"></div>
+        
+        <!-- Skeleton Complaint ID -->
+        <div class="skeleton skeleton-text w-1/2 mb-4"></div>
+        <hr class="my-4 border-gray-200 dark:border-gray-700">
+
+        <!-- Skeleton Details -->
+        <div class="skeleton skeleton-title w-1/3 mb-4"></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div>
+            <div class="skeleton skeleton-text w-3/4 mb-2"></div>
+            <div class="skeleton skeleton-text w-2/3 mb-2"></div>
+            <div class="skeleton skeleton-text w-1/2 mb-2"></div>
+            <div class="skeleton skeleton-text w-3/4 mb-2"></div>
+          </div>
+          <div>
+            <div class="skeleton skeleton-text w-2/3 mb-2"></div>
+            <div class="skeleton skeleton-text w-3/4 mb-2"></div>
+            <div class="skeleton skeleton-text w-1/2 mb-2"></div>
+          </div>
+        </div>
+
+        <!-- Skeleton Description -->
+        <div class="mb-6">
+          <div class="skeleton skeleton-text w-1/4 mb-2"></div>
+          <div class="skeleton skeleton-text w-full mb-2"></div>
+          <div class="skeleton skeleton-text w-full mb-2"></div>
+          <div class="skeleton skeleton-text w-3/4 mb-2"></div>
+        </div>
+
+        <!-- Skeleton Image -->
+        <div class="mb-6">
+          <div class="skeleton skeleton-text w-1/4 mb-2"></div>
+          <div class="skeleton skeleton-image"></div>
+        </div>
+
+        <!-- Skeleton AI Analysis -->
+        <div class="mt-8 bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900 rounded-lg p-6">
+          <div class="skeleton skeleton-title w-1/3 mb-4"></div>
+          <div class="skeleton skeleton-text w-full mb-2"></div>
+          <div class="skeleton skeleton-text w-3/4 mb-2"></div>
+          <div class="skeleton skeleton-text w-full mb-2"></div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div id="main-content">
+        <!-- Summary Container -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 md:p-8 relative mb-8">
+          <!-- Download & Export Buttons -->
+          <div class="flex flex-wrap gap-3 mb-6">
+            <button onclick="downloadPDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
               </svg>
-              Export My Sightings (CSV)
+              Download as PDF
             </button>
-          </form>
-        </div>
 
-        <?php if (!isset($_GET['complaint_id'])): ?>
-        <button id="shareButton" class="absolute top-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2">
-            <circle cx="18" cy="5" r="3"></circle>
-            <circle cx="6" cy="12" r="3"></circle>
-            <circle cx="18" cy="19" r="3"></circle>
-            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-          </svg>
-          Copy Sharable Link
-          <span id="shareTooltip" class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap">Link copied!</span>
-        </button>
-        <?php endif; ?>
-
-        <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">Complaint Submitted Successfully</h2>
-        <p class="mb-2"><strong>Complaint ID:</strong> <?= htmlspecialchars($data['complaint_id']) ?></p>
-        <hr class="my-4 border-gray-200 dark:border-gray-700">
-
-        <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4">Submitted Details:</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <div>
-            <p class="mb-2"><strong>District:</strong> <?= htmlspecialchars($data['district']) ?></p>
-            <p class="mb-2"><strong>City:</strong> <?= htmlspecialchars($data['city']) ?></p>
-            <p class="mb-2"><strong>Postcode:</strong> <?= htmlspecialchars($data['postcode']) ?></p>
-            <p class="mb-2"><strong>Address Line 1:</strong> <?= htmlspecialchars($data['address_line1']) ?></p>
+            <form method="post" action="export-csv.php">
+              <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                </svg>
+                Export My Sightings (CSV)
+              </button>
+            </form>
           </div>
-          <div>
-            <p class="mb-2"><strong>Address Line 2:</strong> <?= htmlspecialchars($data['address_line2']) ?></p>
-            <p class="mb-2"><strong>Landmark:</strong> <?= htmlspecialchars($data['landmark']) ?></p>
-            <p class="mb-2"><strong>Sighting Time:</strong> <?= $data['datetime'] ?></p>
-          </div>
-        </div>
 
-        <?php if (!empty($data['description'])): ?>
-          <div class="mb-6">
-            <p class="mb-2"><strong>Description:</strong></p>
-            <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-              <?= nl2br(htmlspecialchars($data['description'])) ?>
+          <?php if (!isset($_GET['complaint_id'])): ?>
+          <button id="shareButton" class="absolute top-6 right-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-300 flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2">
+              <circle cx="18" cy="5" r="3"></circle>
+              <circle cx="6" cy="12" r="3"></circle>
+              <circle cx="18" cy="19" r="3"></circle>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+            </svg>
+            Copy Sharable Link
+            <span id="shareTooltip" class="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-gray-900 text-white text-xs px-2 py-1 rounded opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap">Link copied!</span>
+          </button>
+          <?php endif; ?>
+
+          <h2 class="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-4">Complaint Submitted Successfully</h2>
+          <p class="mb-2"><strong>Complaint ID:</strong> <?= htmlspecialchars($data['complaint_id']) ?></p>
+          <hr class="my-4 border-gray-200 dark:border-gray-700">
+
+          <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4">Submitted Details:</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div>
+              <p class="mb-2"><strong>District:</strong> <?= htmlspecialchars($data['district']) ?></p>
+              <p class="mb-2"><strong>City:</strong> <?= htmlspecialchars($data['city']) ?></p>
+              <p class="mb-2"><strong>Postcode:</strong> <?= htmlspecialchars($data['postcode']) ?></p>
+              <p class="mb-2"><strong>Address Line 1:</strong> <?= htmlspecialchars($data['address_line1']) ?></p>
+            </div>
+            <div>
+              <p class="mb-2"><strong>Address Line 2:</strong> <?= htmlspecialchars($data['address_line2']) ?></p>
+              <p class="mb-2"><strong>Landmark:</strong> <?= htmlspecialchars($data['landmark']) ?></p>
+              <p class="mb-2"><strong>Sighting Time:</strong> <?= $data['datetime'] ?></p>
             </div>
           </div>
-        <?php endif; ?>
 
-        <?php if (!empty($data['image_path']) && file_exists($data['image_path'])): ?>
-          <div class="mb-6">
-            <p class="mb-2"><strong>Image:</strong></p>
-            <img src="<?= htmlspecialchars($data['image_path']) ?>" alt="Snake Image" class="w-full max-w-2xl rounded-lg shadow-md">
-          </div>
-        <?php endif; ?>
-
-        <hr class="my-4 border-gray-200 dark:border-gray-700">
-        <p class="mb-2"><strong>Submitted by:</strong> 
-          <?= htmlspecialchars($data['user_name'] ?? 'N/A') ?> 
-          (<?= htmlspecialchars($data['user_email'] ?? 'N/A') ?> / <?= htmlspecialchars($data['user_phone'] ?? 'N/A') ?>)
-        </p>
-        
-        <?php if (isset($_SESSION['user_id']) && !empty($data['image_path']) && file_exists($data['image_path'])): ?>
-        <!-- AI Analysis Section -->
-        <div class="mt-8 bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900 rounded-lg p-6" id="aiAnalysisContainer">
-          <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4 flex items-center">
-            AI Snake Analysis
-            <div class="relative ml-2 group">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-400 cursor-help" viewBox="0 0 20 20" fill="currentColor">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-              </svg>
-              <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300 z-10">
-                This analysis is AI-generated using Gemini 2.5 Flash. Results may be wildly inaccurate. Always consult with a snake expert for proper identification.
-                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-2 h-2 bg-gray-800 rotate-45"></div>
+          <?php if (!empty($data['description'])): ?>
+            <div class="mb-6">
+              <p class="mb-2"><strong>Description:</strong></p>
+              <div class="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                <?= nl2br(htmlspecialchars($data['description'])) ?>
               </div>
             </div>
-          </h3>
-          <div id="loadingAnalysis" class="flex items-center">
-            <div class="inline-block w-5 h-5 mr-3 border-2 border-gray-200 dark:border-gray-700 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
-            <p>Analyzing snake image...</p>
-          </div>
-          <div id="analysisResults" class="hidden space-y-4">
-            <div>
-              <p><strong>Snake Species:</strong> <span id="snakeSpecies">-</span></p>
-            </div>
-            <div>
-              <p><strong>Venomous:</strong> <span id="snakeVenomous">-</span></p>
-            </div>
-            <div id="snakeSummary">
-              <p><strong>Summary:</strong></p>
-              <p id="summaryText" class="mt-2 p-4 bg-gray-50 dark:bg-gray-700 border-l-4 border-blue-500 rounded-r-lg"></p>
-            </div>
-          </div>
-          <div id="analysisError" class="hidden p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg">
-            <p>AI analysis is currently unavailable. Please consult with a snake expert for identification.</p>
-          </div>
-        </div>
-        <?php endif; ?>
-        
-        <?php if (isset($_SESSION['user_id'])): ?>
-        <!-- Snake Handlers Section -->
-        <?php
-        // Load snake handlers data
-        $handlersData = [];
-        $jsonFile = 'snakeHandlers.json';
-        
-        if (file_exists($jsonFile)) {
-          $handlersJson = file_get_contents($jsonFile);
-          $handlersData = json_decode($handlersJson, true);
-        }
-        
-        // Filter handlers by district
-        $districtHandlers = [];
-        $district = $data['district'] ?? '';
-        
-        if (!empty($handlersData) && !empty($district)) {
-          foreach ($handlersData as $handler) {
-            if (isset($handler['district']) && $handler['district'] === $district) {
-              $districtHandlers[] = $handler;
-            }
-          }
-        }
-        ?>
-        
-        <div class="mt-8 bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900 rounded-lg p-6">
-          <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4">Snake Handlers in <?= htmlspecialchars($district) ?></h3>
-          
-          <?php if (empty($districtHandlers)): ?>
-            <p class="p-4 bg-gray-50 dark:bg-gray-700 border-l-4 border-gray-500 rounded-r-lg text-gray-700 dark:text-gray-300">No certified snake handlers found in your district. Please contact the Forest Department for assistance.</p>
-          <?php else: ?>
-            <p class="mb-4">Below are certified snake handlers in your district who can help with snake rescue:</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <?php foreach ($districtHandlers as $handler): ?>
-                <div class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 p-4">
-                  <h4 class="text-lg font-semibold text-blue-600 dark:text-blue-400 pb-2 mb-2 border-b border-gray-200 dark:border-gray-600"><?= htmlspecialchars($handler['name'] ?? 'Unknown') ?></h4>
-                  <p class="mb-2 text-sm"><strong>Designation/Address:</strong><br>
-                    <?= htmlspecialchars($handler['designation_address'] ?? 'Not available') ?>
-                  </p>
-                  <p class="mb-2 text-sm font-medium text-blue-600 dark:text-blue-400">
-                    <strong>Phone:</strong> 
-                    <?php if (!empty($handler['mobile_number'])): ?>
-                      <a href="tel:<?= preg_replace('/[^0-9]/', '', $handler['mobile_number']) ?>" class="hover:underline">
-                        <?= htmlspecialchars($handler['mobile_number']) ?>
-                      </a>
-                    <?php else: ?>
-                      Not available
-                    <?php endif; ?>
-                  </p>
-                  <p class="mb-3 text-sm"><strong>Certification ID:</strong> <?= htmlspecialchars($handler['certification_id'] ?? 'Not available') ?></p>
-                  <?php 
-                    $type = $handler['type'] ?? '';
-                    $typeClass = (strpos(strtolower($type), 'staff') !== false) ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200';
-                  ?>
-                  <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full <?= $typeClass ?>"><?= htmlspecialchars($type) ?></span>
-                </div>
-              <?php endforeach; ?>
+          <?php endif; ?>
+
+          <?php if (!empty($data['image_path']) && file_exists($data['image_path'])): ?>
+            <div class="mb-6">
+              <p class="mb-2"><strong>Image:</strong></p>
+              <img src="<?= htmlspecialchars($data['image_path']) ?>" alt="Snake Image" class="w-full max-w-2xl rounded-lg shadow-md">
             </div>
           <?php endif; ?>
+
+          <hr class="my-4 border-gray-200 dark:border-gray-700">
+          <p class="mb-2"><strong>Submitted by:</strong> 
+            <?= htmlspecialchars($data['user_name'] ?? 'N/A') ?> 
+            (<?= htmlspecialchars($data['user_email'] ?? 'N/A') ?> / <?= htmlspecialchars($data['user_phone'] ?? 'N/A') ?>)
+          </p>
+          
+          <?php if (isset($_SESSION['user_id']) && !empty($data['image_path']) && file_exists($data['image_path'])): ?>
+          <!-- AI Analysis Section -->
+          <div class="mt-8 bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900 rounded-lg p-6" id="aiAnalysisContainer">
+            <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4 flex items-center">
+              AI Snake Analysis
+              <div class="relative ml-2 group">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-400 cursor-help" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+                <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300 z-10">
+                  This analysis is AI-generated using Gemini 2.5 Flash. Results may be wildly inaccurate. Always consult with a snake expert for proper identification.
+                  <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-2 h-2 bg-gray-800 rotate-45"></div>
+                </div>
+              </div>
+            </h3>
+            <div id="loadingAnalysis" class="flex items-center">
+              <div class="inline-block w-5 h-5 mr-3 border-2 border-gray-200 dark:border-gray-700 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
+              <p>Analyzing snake image...</p>
+            </div>
+            <div id="analysisResults" class="hidden space-y-4">
+              <div>
+                <p><strong>Snake Species:</strong> <span id="snakeSpecies">-</span></p>
+              </div>
+              <div>
+                <p><strong>Venomous:</strong> <span id="snakeVenomous">-</span></p>
+              </div>
+              <div id="snakeSummary">
+                <p><strong>Summary:</strong></p>
+                <p id="summaryText" class="mt-2 p-4 bg-gray-50 dark:bg-gray-700 border-l-4 border-blue-500 rounded-r-lg"></p>
+              </div>
+            </div>
+            <div id="analysisError" class="hidden p-4 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-lg">
+              <p>AI analysis is currently unavailable. Please consult with a snake expert for identification.</p>
+            </div>
+          </div>
+          <?php endif; ?>
+          
+          <?php if (isset($_SESSION['user_id'])): ?>
+          <!-- Snake Handlers Section -->
+          <?php
+          // Load snake handlers data
+          $handlersData = [];
+          $jsonFile = 'snakeHandlers.json';
+          
+          if (file_exists($jsonFile)) {
+            $handlersJson = file_get_contents($jsonFile);
+            $handlersData = json_decode($handlersJson, true);
+          }
+          
+          // Filter handlers by district
+          $districtHandlers = [];
+          $district = $data['district'] ?? '';
+          
+          if (!empty($handlersData) && !empty($district)) {
+            foreach ($handlersData as $handler) {
+              if (isset($handler['district']) && $handler['district'] === $district) {
+                $districtHandlers[] = $handler;
+              }
+            }
+          }
+          ?>
+          
+          <div class="mt-8 bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900 rounded-lg p-6">
+            <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4">Snake Handlers in <?= htmlspecialchars($district) ?></h3>
+            
+            <?php if (empty($districtHandlers)): ?>
+              <p class="p-4 bg-gray-50 dark:bg-gray-700 border-l-4 border-gray-500 rounded-r-lg text-gray-700 dark:text-gray-300">No certified snake handlers found in your district. Please contact the Forest Department for assistance.</p>
+            <?php else: ?>
+              <p class="mb-4">Below are certified snake handlers in your district who can help with snake rescue:</p>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <?php foreach ($districtHandlers as $handler): ?>
+                  <div class="bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300 p-4">
+                    <h4 class="text-lg font-semibold text-blue-600 dark:text-blue-400 pb-2 mb-2 border-b border-gray-200 dark:border-gray-600"><?= htmlspecialchars($handler['name'] ?? 'Unknown') ?></h4>
+                    <p class="mb-2 text-sm"><strong>Designation/Address:</strong><br>
+                      <?= htmlspecialchars($handler['designation_address'] ?? 'Not available') ?>
+                    </p>
+                    <p class="mb-2 text-sm font-medium text-blue-600 dark:text-blue-400">
+                      <strong>Phone:</strong> 
+                      <?php if (!empty($handler['mobile_number'])): ?>
+                        <a href="tel:<?= preg_replace('/[^0-9]/', '', $handler['mobile_number']) ?>" class="hover:underline">
+                          <?= htmlspecialchars($handler['mobile_number']) ?>
+                        </a>
+                      <?php else: ?>
+                        Not available
+                      <?php endif; ?>
+                    </p>
+                    <p class="mb-3 text-sm"><strong>Certification ID:</strong> <?= htmlspecialchars($handler['certification_id'] ?? 'Not available') ?></p>
+                    <?php 
+                      $type = $handler['type'] ?? '';
+                      $typeClass = (strpos(strtolower($type), 'staff') !== false) ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200' : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200';
+                    ?>
+                    <span class="inline-block px-3 py-1 text-xs font-semibold rounded-full <?= $typeClass ?>"><?= htmlspecialchars($type) ?></span>
+                  </div>
+                <?php endforeach; ?>
+              </div>
+            <?php endif; ?>
+          </div>
+          <?php endif; ?>
         </div>
-        <?php endif; ?>
       </div>
     </div>
   </main>
@@ -266,6 +383,14 @@ $data = $result->fetch_assoc();
   <?php include 'components/footer.php'; ?>
   
   <script>
+    // Function to handle page load
+    window.addEventListener('load', function() {
+        // Simulate loading time (remove this in production)
+        setTimeout(function() {
+            document.body.classList.remove('loading');
+        }, 1000);
+    });
+
     // Share button functionality
     const shareButton = document.getElementById('shareButton');
     
