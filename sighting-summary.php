@@ -315,6 +315,7 @@ $data = $result->fetch_assoc();
           
           <?php if (isset($_SESSION['user_id'])): ?>
           <!-- Snake Handlers Section -->
+          <?php if (!isset($_GET['complaint_id'])): ?>
           <?php
           // Load snake handlers data
           $handlersData = [];
@@ -382,6 +383,7 @@ $data = $result->fetch_assoc();
               </div>
             <?php endif; ?>
           </div>
+          <?php endif; ?>
           <?php endif; ?>
         </div>
       </div>
