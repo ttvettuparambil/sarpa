@@ -79,6 +79,10 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
     
+    <!-- Driver.js for guided tour -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@0.9.8/dist/driver.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@0.9.8/dist/driver.min.js"></script>
+    
     <!-- Custom CSS for DataTables in Dark Mode -->
     <style>
         /* Dark mode styles for DataTables */
@@ -172,7 +176,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
     <main class="flex-grow container mx-auto px-4 py-8">
         <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between" id="welcome-section">
                     <div>
                         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
                             Welcome to SARPA, <?= htmlspecialchars($user['first_name']) ?> 👋
@@ -182,6 +186,12 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                         </p>
                     </div>
                     <div class="mt-4 md:mt-0 flex flex-wrap gap-2">
+                        <button id="start-tour" class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors mr-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Take Tour
+                        </button>
                         <a href="snake-sighting-form.php" class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -193,7 +203,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
             </div>
             
             <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="user-info-cards">
                     <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 flex items-center">
                         <div class="rounded-full bg-blue-100 dark:bg-blue-800 p-3 mr-4">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600 dark:text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -231,7 +241,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                     </div>
                 </div>
                 
-                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6" id="user-actions">
                     <div>
                         <a href="user_profile.php" class="block w-full py-2 px-4 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-center transition-colors">
                             <span class="flex items-center justify-center">
@@ -258,13 +268,13 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
         </div>
         
         <!-- Snake Sightings Chart -->
-        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8" id="chart-section">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Snake Sightings Over Time</h2>
             </div>
             <div class="p-6">
                 <div class="flex justify-center mb-6">
-                    <div class="inline-flex rounded-md shadow-sm" role="group">
+                    <div class="inline-flex rounded-md shadow-sm" role="group" id="time-filters">
                         <button id="week-btn" class="py-2 px-4 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-l-lg hover:bg-gray-50 dark:hover:bg-gray-600 focus:z-10 focus:ring-2 focus:ring-blue-500 focus:text-blue-600 dark:focus:text-blue-400 transition-colors">
                             Week
                         </button>
@@ -283,7 +293,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
         </div>
         
         <!-- Past Sightings Table -->
-        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden" id="sightings-table-section">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                 <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Past Sightings</h2>
             </div>
@@ -351,6 +361,120 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
     </div>
     
     <script>
+        // Driver.js tour configuration
+        function initializeDriverTour() {
+            // Initialize driver.js
+            const driver = new Driver({
+                    animate: true,
+                    opacity: 0.75,
+                    padding: 10,
+                    showButtons: true,
+                    showProgress: true,
+                    closeButtonText: "Skip",
+                    nextButtonText: "Next",
+                    prevButtonText: "Previous",
+                    doneBtnText: "Done",
+                    stagePadding: 5,
+                    allowClose: true,
+                    overlayClickNext: false,
+                    stageBackground: '#ffffff',
+                    overlayColor: 'rgba(0, 0, 0, 0.7)',
+                    onReset: () => {
+                        console.log('Tour was closed');
+                    }
+                });
+
+                // Define tour steps
+                const steps = [
+                    {
+                        element: '#welcome-section',
+                        popover: {
+                            title: 'Welcome to Your Dashboard',
+                            description: 'This is your personal dashboard where you can manage all your snake sighting reports and account information.',
+                            position: 'bottom'
+                        }
+                    },
+                    {
+                        element: '#user-info-cards',
+                        popover: {
+                            title: 'Your Information',
+                            description: 'Here you can see your user ID, email, and account status at a glance.',
+                            position: 'bottom'
+                        }
+                    },
+                    {
+                        element: '#user-actions',
+                        popover: {
+                            title: 'Quick Actions',
+                            description: 'Access your profile settings or view your activity log with these shortcuts.',
+                            position: 'top'
+                        }
+                    },
+                    {
+                        element: '#chart-section',
+                        popover: {
+                            title: 'Sightings Chart',
+                            description: 'This chart shows your snake sightings over time, helping you visualize your reporting activity.',
+                            position: 'top'
+                        }
+                    },
+                    {
+                        element: '#time-filters',
+                        popover: {
+                            title: 'Time Period Filters',
+                            description: 'Switch between different time periods to view your sighting history by week, month, or year.',
+                            position: 'bottom'
+                        }
+                    },
+                    {
+                        element: '#sightings-table-section',
+                        popover: {
+                            title: 'Past Sightings',
+                            description: 'View all your past snake sighting reports in this table. Click on "View" to see the full details of any report.',
+                            position: 'top'
+                        }
+                    },
+                    {
+                        element: '#start-tour',
+                        popover: {
+                            title: 'Take the Tour Again',
+                            description: 'You can restart this tour anytime by clicking this button.',
+                            position: 'bottom'
+                        }
+                    }
+                ];
+
+                // Define the steps
+                driver.defineSteps(steps);
+                
+                // Return the driver instance for potential use elsewhere
+                return driver;
+            }
+        
+        // Initialize the tour when the DOM is fully loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the tour
+            const driverObj = initializeDriverTour();
+            
+            // Add event listener to start tour button
+            const startTourBtn = document.getElementById('start-tour');
+            if (startTourBtn) {
+                startTourBtn.addEventListener('click', function() {
+                    driverObj.start();
+                });
+            }
+            
+            // Check if first visit
+            const hasSeenTour = localStorage.getItem('hasSeenDashboardTour');
+            if (!hasSeenTour) {
+                // Wait a bit for the page to fully render before starting the tour
+                setTimeout(() => {
+                    driverObj.start();
+                    localStorage.setItem('hasSeenDashboardTour', 'true');
+                }, 1000);
+            }
+        });
+
         // Session timeout management
         var sessionTimeout = 600000; // 10 minutes in milliseconds
         var warningTime = 480000; // 8 minutes in milliseconds (show warning 2 minutes before timeout)
