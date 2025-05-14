@@ -163,7 +163,18 @@ $data = $result->fetch_assoc();
         <?php if (isset($_SESSION['user_id']) && !empty($data['image_path']) && file_exists($data['image_path'])): ?>
         <!-- AI Analysis Section -->
         <div class="mt-8 bg-white dark:bg-gray-800 border-2 border-blue-100 dark:border-blue-900 rounded-lg p-6" id="aiAnalysisContainer">
-          <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4">AI Snake Analysis</h3>
+          <h3 class="text-xl font-semibold text-blue-600 dark:text-blue-400 mb-4 flex items-center">
+            AI Snake Analysis
+            <div class="relative ml-2 group">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-500 dark:text-gray-400 cursor-help" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+              </svg>
+              <div class="absolute left-1/2 transform -translate-x-1/2 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-opacity duration-300 z-10">
+                This analysis is AI-generated using Gemini 2.5 Flash. Results may be wildly inaccurate. Always consult with a snake expert for proper identification.
+                <div class="absolute left-1/2 transform -translate-x-1/2 top-full w-2 h-2 bg-gray-800 rotate-45"></div>
+              </div>
+            </div>
+          </h3>
           <div id="loadingAnalysis" class="flex items-center">
             <div class="inline-block w-5 h-5 mr-3 border-2 border-gray-200 dark:border-gray-700 border-t-blue-600 dark:border-t-blue-400 rounded-full animate-spin"></div>
             <p>Analyzing snake image...</p>
@@ -478,6 +489,24 @@ $data = $result->fetch_assoc();
     // Start analysis when page loads
     window.onload = function() {
       analyzeSnakeImage();
+      
+      // Toggle tooltip on mobile
+      const infoIcon = document.querySelector('#aiAnalysisContainer .cursor-help');
+      if (infoIcon) {
+        infoIcon.addEventListener('click', function(e) {
+          e.preventDefault();
+          const tooltip = this.nextElementSibling;
+          tooltip.classList.toggle('opacity-0');
+          tooltip.classList.toggle('invisible');
+          
+          // Hide tooltip after 3 seconds
+          if (!tooltip.classList.contains('opacity-0')) {
+            setTimeout(() => {
+              tooltip.classList.add('opacity-0', 'invisible');
+            }, 3000);
+          }
+        });
+      }
     };
 
     // PDF download function
