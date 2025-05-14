@@ -1,5 +1,26 @@
 <?php
 session_start();
+require 'dbConnection.php';
+
+// Prefill contact form fields if user is logged in
+$user_name = $user_email = $user_phone = '';
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    $stmt = $conn->prepare("
+        SELECT u.first_name, u.last_name, u.email, p.alternate_phone
+        FROM users u
+        LEFT JOIN user_profiles p ON u.id = p.user_id
+        WHERE u.id = ?
+    ");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $user_name = trim($row['first_name'] . ' ' . $row['last_name']);
+        $user_email = $row['email'];
+        $user_phone = $row['alternate_phone'] ?? '';
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en" class="light">
@@ -8,6 +29,8 @@ session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SARPA - Professional Snake Rescue & Wildlife Conservation</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Add Video.js CSS -->
+    <link href="https://vjs.zencdn.net/8.10.0/video-js.css" rel="stylesheet" />
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -278,6 +301,54 @@ session_start();
             </div>
         </section>
 
+        <!-- Educational Videos Section -->
+        <section id="educational-videos" class="py-16 bg-gray-100 dark:bg-gray-900">
+            <div class="container mx-auto px-4">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">Educational Videos</h2>
+                    <div class="w-20 h-1 bg-blue-600 mx-auto"></div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Video Card 1 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                        <div class="relative pb-[56.25%] h-0">
+                            <video
+                                id="player1"
+                                class="video-js vjs-default-skin vjs-big-play-centered absolute top-0 left-0 w-full h-full"
+                                controls
+                                preload="auto"
+                                data-setup='{"techOrder": ["youtube"], "sources": [{"type": "video/youtube", "src": "https://www.youtube.com/watch?v=1gxf6flnvNA"}]}'
+                            >
+                            </video>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Snake Safety and Awareness</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Learn essential tips about snake safety and how to handle snake encounters in your area.</p>
+                        </div>
+                    </div>
+
+                    <!-- Video Card 2 -->
+                    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-lg">
+                        <div class="relative pb-[56.25%] h-0">
+                            <video
+                                id="player2"
+                                class="video-js vjs-default-skin vjs-big-play-centered absolute top-0 left-0 w-full h-full"
+                                controls
+                                preload="auto"
+                                data-setup='{"techOrder": ["youtube"], "sources": [{"type": "video/youtube", "src": "https://www.youtube.com/watch?v=VQRLujxTm3c"}]}'
+                            >
+                            </video>
+                        </div>
+                        <div class="p-6">
+                            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Snake Rescue Techniques</h3>
+                            <p class="text-gray-600 dark:text-gray-300">Professional snake rescue techniques and best practices for handling different snake species.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Contact Section -->
         <section id="contact" class="py-16 bg-gray-100 dark:bg-gray-900">
             <div class="container mx-auto px-4">
@@ -355,20 +426,20 @@ session_start();
                     <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
                         <h3 class="text-2xl font-semibold text-gray-900 dark:text-white mb-6">Send a Message</h3>
                         
-                        <form>
+                        <form method="POST" action="submit-contact.php">
                             <div class="mb-6">
                                 <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Name</label>
-                                <input type="text" id="name" name="name" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                                <input type="text" id="name" name="name" value="<?php echo htmlspecialchars($user_name); ?>" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                             </div>
                             
                             <div class="mb-6">
                                 <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Email</label>
-                                <input type="email" id="email" name="email" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                                <input type="email" id="email" name="email" value="<?php echo htmlspecialchars($user_email); ?>" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                             </div>
                             
                             <div class="mb-6">
                                 <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Your Phone</label>
-                                <input type="tel" id="phone" name="phone" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
+                                <input type="tel" id="phone" name="phone" value="<?php echo htmlspecialchars($user_phone); ?>" class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white" required>
                             </div>
                             
                             <div class="mb-6">
@@ -402,6 +473,148 @@ session_start();
                         top: targetElement.offsetTop - 100,
                         behavior: 'smooth'
                     });
+                }
+            });
+        });
+    </script>
+
+    <!-- Add Video.js and YouTube tech -->
+    <script src="https://vjs.zencdn.net/8.10.0/video.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/videojs-youtube/3.0.1/Youtube.min.js"></script>
+    <script>
+        class VideoTracker {
+            constructor(player, videoId) {
+                this.player = player;
+                this.videoId = videoId;
+                this.lastSavedTime = 0;
+                this.isLoggedIn = <?= isset($_SESSION['user_id']) ? 'true' : 'false' ?>;
+                this.trackingInterval = null;
+                this.isInitialLoad = true;
+                
+                this.initialize();
+            }
+            
+            initialize() {
+                if (this.isLoggedIn) {
+                    this.setupEventListeners();
+                    this.loadProgress();
+                }
+            }
+            
+            async loadProgress() {
+                try {
+                    const response = await fetch(`video-progress.php?video_id=${this.videoId}`);
+                    const data = await response.json();
+                    if (data.timestamp > 0) {
+                        // Store the timestamp to use when the video is ready
+                        this.savedTimestamp = data.timestamp;
+                    }
+                } catch (error) {
+                    console.error('Error loading video progress:', error);
+                }
+            }
+            
+            setupEventListeners() {
+                // Listen for when the YouTube source is ready
+                this.player.on('loadedmetadata', () => {
+                    if (this.isInitialLoad && this.savedTimestamp) {
+                        this.player.currentTime(this.savedTimestamp);
+                        this.isInitialLoad = false;
+                    }
+                });
+
+                // Start tracking when video starts playing
+                this.player.on('play', () => {
+                    this.startTracking();
+                });
+
+                this.player.on('pause', () => {
+                    this.stopTracking();
+                    // Save progress on pause
+                    const currentTime = Math.floor(this.player.currentTime());
+                    this.saveProgress(currentTime);
+                });
+
+                this.player.on('ended', () => {
+                    this.stopTracking();
+                    // Save progress when video ends
+                    const currentTime = Math.floor(this.player.currentTime());
+                    this.saveProgress(currentTime);
+                });
+            }
+
+            startTracking() {
+                // Clear any existing interval
+                this.stopTracking();
+                
+                // Start new tracking interval
+                this.trackingInterval = setInterval(() => {
+                    const currentTime = Math.floor(this.player.currentTime());
+                    if (currentTime - this.lastSavedTime >= 30) {
+                        this.saveProgress(currentTime);
+                        this.lastSavedTime = currentTime;
+                    }
+                }, 1000);
+            }
+
+            stopTracking() {
+                if (this.trackingInterval) {
+                    clearInterval(this.trackingInterval);
+                    this.trackingInterval = null;
+                }
+            }
+            
+            async saveProgress(timestamp) {
+                try {
+                    const formData = new FormData();
+                    formData.append('video_id', this.videoId);
+                    formData.append('timestamp', timestamp);
+                    
+                    const response = await fetch('video-progress.php', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to save progress');
+                    }
+                    
+                    console.log('Progress saved for video', this.videoId, 'at', timestamp);
+                } catch (error) {
+                    console.error('Error saving video progress:', error);
+                }
+            }
+        }
+
+        // Function to extract YouTube video ID from URL
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+
+        // Initialize Video.js player
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all video elements
+            const videoElements = document.querySelectorAll('.video-js');
+            
+            videoElements.forEach((element, index) => {
+                // Get the data-setup attribute
+                const setupData = JSON.parse(element.getAttribute('data-setup'));
+                // Extract video ID from the YouTube URL
+                const videoId = getYouTubeId(setupData.sources[0].src);
+                
+                if (videoId) {
+                    // Initialize the player
+                    const player = videojs(element.id, {
+                        youtube: {
+                            ytControls: 2,
+                            rel: 0
+                        }
+                    });
+                    
+                    // Initialize tracker with the extracted video ID
+                    new VideoTracker(player, videoId);
                 }
             });
         });
