@@ -5,9 +5,13 @@ require_once 'config.php';
 
 // Initialize complaint_id variable
 $complaint_id = null;
-if (!isset($_SESSION['user_id'])) {
-  header("Location: login.php");
+
+// Check if user is logged in (except for super_admin who can view any complaint)
+if (!isset($_SESSION['user_id']) && (!isset($_SESSION['role']) || $_SESSION['role'] !== 'super_admin')) {
+    header("Location: login.php");
+    exit;
 }
+
 // First check if complaint_id exists in URL query parameter
 if (isset($_GET['complaint_id']) && !empty($_GET['complaint_id'])) {
     // Sanitize the input to prevent XSS attacks
