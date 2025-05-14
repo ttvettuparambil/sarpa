@@ -168,6 +168,21 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
         .dark .dataTables_wrapper .dataTables_paginate {
             color: #d1d5db; /* gray-300 */
         }
+        
+        .chart-container {
+            width: 100%;
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .chart-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2a7d46;
+        }
     </style>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen flex flex-col transition-colors duration-200">
@@ -286,7 +301,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                         </button>
                     </div>
                 </div>
-                <div class="h-80">
+                <div class="h-80 w-full">
                     <canvas id="sightingsChart"></canvas>
                 </div>
             </div>
@@ -540,7 +555,8 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
+                    aspectRatio: 2,
                     scales: {
                         y: {
                             beginAtZero: true,
