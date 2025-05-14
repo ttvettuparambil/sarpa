@@ -2,6 +2,39 @@
 session_start();
 include 'dbConnection.php';
 
+// Auto-login using remember me cookie if not already logged in
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['rememberme'])) {
+    $token = $_COOKIE['rememberme'];
+    $stmt = $conn->prepare("SELECT user_id FROM user_remember_tokens WHERE token = ? AND expires_at > NOW()");
+    $stmt->bind_param("s", $token);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($row = $result->fetch_assoc()) {
+        // Fetch user details
+        $userStmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+        $userStmt->bind_param("i", $row['user_id']);
+        $userStmt->execute();
+        $user = $userStmt->get_result()->fetch_assoc();
+        if ($user) {
+            $_SESSION['user_id'] = $user['id'];
+            $_SESSION['role'] = $user['role'];
+            $_SESSION['first_name'] = $user['first_name'];
+            $_SESSION['last_name'] = $user['last_name'];
+            // Redirect based on role
+            if ($user['role'] == 'user') {
+                header("Location: user-dashboard.php");
+                exit;
+            } elseif ($user['role'] == 'partner') {
+                header("Location: partner-dashboard.php");
+                exit;
+            } elseif ($user['role'] == 'super_admin') {
+                header("Location: admin-dashboard.php");
+                exit;
+            }
+        }
+    }
+}
+
 if (isset($_SESSION['role']) && $_SESSION['role'] == 'user') {
     header("Location: user-dashboard.php");
 } elseif (isset($_SESSION['role']) && $_SESSION['role'] == 'partner') {
@@ -33,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $password_input = $_POST['password'];
     $ip = $_SERVER['REMOTE_ADDR'];
+    $remember = isset($_POST['remember']);
 
     // Step 1: Check if the user is currently locked out
     $checkLockoutStmt = mysqli_prepare($conn, 
@@ -127,6 +161,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         header("Location: otp-verify.php");
                         exit;
                     
+                        // Handle Remember Me
+                        if ($remember) {
+                            $token = bin2hex(random_bytes(32));
+                            $user_id = $user['id'];
+                            $expiry = date('Y-m-d H:i:s', strtotime('+30 days'));
+                            $stmt = $conn->prepare("INSERT INTO user_remember_tokens (user_id, token, expires_at) VALUES (?, ?, ?)");
+                            $stmt->bind_param("iss", $user_id, $token, $expiry);
+                            $stmt->execute();
+                            setcookie('rememberme', $token, time() + (86400 * 30), "/", "", true, true);
+                        }
                     
                 } else {
                     // Log the failed attempt
@@ -326,6 +370,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                           focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                           dark:bg-gray-700 dark:text-white sm:text-sm">
                         </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input id="remember" name="remember" type="checkbox" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="remember" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                            Remember me
+                        </label>
                     </div>
 
                     <div class="flex items-center justify-between">
