@@ -30,11 +30,34 @@ $result = mysqli_stmt_get_result($stmt);
 
 $user = mysqli_fetch_assoc($result);
 
+// Fetch user's notifications
+$notifications_sql = "SELECT id, title, message, created_at, is_read 
+                     FROM notifications 
+                     WHERE user_id = ? 
+                     ORDER BY created_at DESC 
+                     LIMIT 5";
+$notifications_stmt = mysqli_prepare($conn, $notifications_sql);
+mysqli_stmt_bind_param($notifications_stmt, "i", $user_id);
+mysqli_stmt_execute($notifications_stmt);
+$notifications_result = mysqli_stmt_get_result($notifications_stmt);
+
+// Count unread notifications
+$unread_sql = "SELECT COUNT(*) as unread_count 
+              FROM notifications 
+              WHERE user_id = ? AND is_read = 0";
+$unread_stmt = mysqli_prepare($conn, $unread_sql);
+mysqli_stmt_bind_param($unread_stmt, "i", $user_id);
+mysqli_stmt_execute($unread_stmt);
+$unread_result = mysqli_stmt_get_result($unread_stmt);
+$unread_count = mysqli_fetch_assoc($unread_result)['unread_count'];
+
 // Fetch user's past snake sightings
 $sightings_sql = "SELECT s.id, s.complaint_id, s.district, s.city, 
                  CONCAT(s.address_line1, IF(s.address_line2 IS NOT NULL, CONCAT(', ', s.address_line2), '')) AS location,
-                 s.datetime AS sighting_date, s.description, s.image_path
+                 s.datetime AS sighting_date, s.description, s.image_path,
+                 CASE WHEN ca.id IS NOT NULL THEN 'Accepted' ELSE 'Pending' END as status
                  FROM snake_sightings s 
+                 LEFT JOIN complaint_assignments ca ON s.complaint_id = ca.complaint_id AND ca.status = 'accepted'
                  WHERE s.user_email = ? 
                  ORDER BY s.datetime DESC";
 $sightings_stmt = mysqli_prepare($conn, $sightings_sql);
@@ -216,7 +239,60 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                     </div>
                 </div>
             </div>
+        </div>
+        
+        <!-- Notifications Section -->
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8" id="notifications-section">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    Notifications
+                    <?php if ($unread_count > 0): ?>
+                        <span class="ml-2 px-2 py-1 text-xs font-bold rounded-full bg-red-500 text-white"><?= $unread_count ?></span>
+                    <?php endif; ?>
+                </h2>
+                <a href="notifications.php" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 flex items-center">
+                    View All
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+            </div>
+            <div class="p-6">
+                <?php if (mysqli_num_rows($notifications_result) > 0): ?>
+                    <div class="space-y-4">
+                        <?php while ($notification = mysqli_fetch_assoc($notifications_result)): ?>
+                            <div class="p-4 rounded-lg border <?= $notification['is_read'] ? 'bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700' : 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' ?>">
+                                <div class="flex justify-between">
+                                    <h3 class="font-medium text-gray-900 dark:text-white"><?= htmlspecialchars($notification['title']) ?></h3>
+                                    <span class="text-sm text-gray-500 dark:text-gray-400"><?= date('M d, Y H:i', strtotime($notification['created_at'])) ?></span>
+                                </div>
+                                <p class="mt-1 text-gray-600 dark:text-gray-300"><?= htmlspecialchars($notification['message']) ?></p>
+                                <?php if (!$notification['is_read']): ?>
+                                    <form method="POST" action="mark_notification_read.php" class="mt-2">
+                                        <input type="hidden" name="notification_id" value="<?= $notification['id'] ?>">
+                                        <button type="submit" class="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+                                            Mark as read
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+                <?php else: ?>
+                    <div class="text-center py-8">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto text-gray-400 dark:text-gray-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <p class="text-gray-600 dark:text-gray-400">No notifications at this time.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
             
+        <div class="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden mb-8">
             <div class="p-6">
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="user-info-cards">
                     <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 flex items-center">
@@ -323,6 +399,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">District</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Location</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Date & Time</th>
+                                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Status</th>
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
@@ -334,6 +411,11 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"><?= htmlspecialchars($sighting['district']) ?></td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"><?= htmlspecialchars($sighting['location']) ?></td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white"><?= htmlspecialchars(date('M d, Y H:i', strtotime($sighting['sighting_date']))) ?></td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                            <span class="px-2 py-1 text-xs font-semibold rounded-full <?= $sighting['status'] === 'Accepted' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' ?>">
+                                                <?= htmlspecialchars($sighting['status']) ?>
+                                            </span>
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <a href="sighting-summary.php?complaint_id=<?= $sighting['complaint_id'] ?>" class="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">View</a>
                                         </td>
@@ -410,6 +492,14 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                         }
                     },
                     {
+                        element: '#notifications-section',
+                        popover: {
+                            title: 'Notifications',
+                            description: 'Here you can see notifications about your snake sightings, including when a partner accepts your complaint.',
+                            position: 'bottom'
+                        }
+                    },
+                    {
                         element: '#user-info-cards',
                         popover: {
                             title: 'Your Information',
@@ -445,7 +535,7 @@ $has_sightings = mysqli_num_rows($sightings_result) > 0;
                         element: '#sightings-table-section',
                         popover: {
                             title: 'Past Sightings',
-                            description: 'View all your past snake sighting reports in this table. Click on "View" to see the full details of any report.',
+                            description: 'View all your past snake sighting reports in this table. The status column shows if a partner has accepted your complaint.',
                             position: 'top'
                         }
                     },

@@ -10,16 +10,17 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Sanitize input
-$dob = empty($_POST['dob']) ? null : $_POST['dob'];
-$gender = $_POST['gender'] ?? '';
+$dob = trim($_POST['dob'] ?? '');
+$gender = trim($_POST['gender'] ?? '');
 $occupation = trim($_POST['occupation'] ?? '');
 $education_level = trim($_POST['education_level'] ?? '');
 $bio = trim($_POST['bio'] ?? '');
-$alternate_phone = trim($_POST['alternate_phone'] ?? '');
 $alternate_email = trim($_POST['alternate_email'] ?? '');
+$alternate_phone = trim($_POST['alternate_phone'] ?? '');
+$profile_picture = $_FILES['profile_picture']['name'] ?? '';
 
 // Handle profile picture upload
-$profile_picture = null;
+$profile_picture_path = null;
 if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {
     $allowed_types = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
     $max_size = 2 * 1024 * 1024; // 2MB
@@ -64,7 +65,7 @@ if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 
             }
         }
         
-        $profile_picture = $new_filename;
+        $profile_picture_path = $new_filename;
     } else {
         $_SESSION['profile_msg'] = "Error uploading file. Please try again.";
         header("Location: user_profile.php");
@@ -80,21 +81,21 @@ $result = $stmt->get_result();
 
 if ($result->num_rows > 0) {
     // Update
-    if ($profile_picture) {
-        $stmt = $conn->prepare("UPDATE user_profiles SET dob=?, gender=?, occupation=?, education_level=?, bio=?, alternate_phone=?, alternate_email=?, profile_picture=? WHERE user_id=?");
-        $stmt->bind_param("ssssssssi", $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email, $profile_picture, $user_id);
+    if (!empty($profile_picture_path)) {
+        $stmt = $conn->prepare("UPDATE user_profiles SET dob=?, gender=?, occupation=?, education_level=?, bio=?, alternate_email=?, alternate_phone=?, profile_picture=? WHERE user_id=?");
+        $stmt->bind_param("ssssssssi", $dob, $gender, $occupation, $education_level, $bio, $alternate_email, $alternate_phone, $profile_picture_path, $user_id);
     } else {
-        $stmt = $conn->prepare("UPDATE user_profiles SET dob=?, gender=?, occupation=?, education_level=?, bio=?, alternate_phone=?, alternate_email=? WHERE user_id=?");
-        $stmt->bind_param("sssssssi", $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email, $user_id);
+        $stmt = $conn->prepare("UPDATE user_profiles SET dob=?, gender=?, occupation=?, education_level=?, bio=?, alternate_email=?, alternate_phone=? WHERE user_id=?");
+        $stmt->bind_param("sssssssi", $dob, $gender, $occupation, $education_level, $bio, $alternate_email, $alternate_phone, $user_id);
     }
 } else {
     // Insert
-    if ($profile_picture) {
-        $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, dob, gender, occupation, education_level, bio, alternate_phone, alternate_email, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("issssssss", $user_id, $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email, $profile_picture);
+    if (!empty($profile_picture_path)) {
+        $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, dob, gender, occupation, education_level, bio, alternate_email, alternate_phone, profile_picture) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("issssssss", $user_id, $dob, $gender, $occupation, $education_level, $bio, $alternate_email, $alternate_phone, $profile_picture_path);
     } else {
-        $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, dob, gender, occupation, education_level, bio, alternate_phone, alternate_email) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("isssssss", $user_id, $dob, $gender, $occupation, $education_level, $bio, $alternate_phone, $alternate_email);
+        $stmt = $conn->prepare("INSERT INTO user_profiles (user_id, dob, gender, occupation, education_level, bio, alternate_email, alternate_phone) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("isssssss", $user_id, $dob, $gender, $occupation, $education_level, $bio, $alternate_email, $alternate_phone);
     }
 }
 

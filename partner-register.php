@@ -7,30 +7,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $first_name = htmlspecialchars(trim($_POST['first_name']));
     $last_name = htmlspecialchars(trim($_POST['last_name']));
     $email = htmlspecialchars(trim($_POST['email']));
-    $address = htmlspecialchars(trim($_POST['address']));
+    $district = htmlspecialchars(trim($_POST['district']));
+    $phone = htmlspecialchars(trim($_POST['phone']));
     $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
-    $latitude = !empty($_POST['latitude']) ? htmlspecialchars(trim($_POST['latitude'])) : 0;
-    $longitude = !empty($_POST['longitude']) ? htmlspecialchars(trim($_POST['longitude'])) : 0;   
-
-    // Use procedural MySQLi
-    $sql = "INSERT INTO users (role, first_name, last_name, address, email, password, latitude, longitude) 
-            VALUES ('user', ?, ?, ?, ?, ?, ?, ?)";
     
-    $stmt = mysqli_prepare($conn, $sql);
-    mysqli_stmt_bind_param($stmt, "ssssssd", $first_name, $last_name, $address, $email, $password, $latitude, $longitude);
-
-    if (mysqli_stmt_execute($stmt)) {
+    // Insert into users table
+    $sql_user = "INSERT INTO users (role, first_name, last_name, district, email, phone, password) 
+            VALUES ('partner', ?, ?, ?, ?, ?, ?)";
+    $stmt_user = mysqli_prepare($conn, $sql_user);
+    
+    if (!$stmt_user) {
+        // Handle preparation error
+        error_log("Partner registration error: " . mysqli_error($conn));
         $_SESSION['alert'] = [
-            'type' => 'success',
-            'message' => "Registration successful. <a href='login.php' class='text-blue-600 dark:text-blue-400 hover:text-blue-500'>Login here</a>."
+            'type' => 'error',
+            'message' => "Registration failed: " . mysqli_error($conn)
         ];
-        header("Location: login.php");
-        exit;
     } else {
-        $message = "Error: " . mysqli_error($conn);
+        // Bind parameters and execute
+        mysqli_stmt_bind_param($stmt_user, "ssssss", $first_name, $last_name, $district, $email, $phone, $password);
+        
+        if (mysqli_stmt_execute($stmt_user)) {
+            // Success
+            $_SESSION['alert'] = [
+                'type' => 'success',
+                'message' => "Registration successful. <a href='login.php' class='text-blue-600 dark:text-blue-400 hover:text-blue-500'>Login here</a>."
+            ];
+            mysqli_stmt_close($stmt_user);
+            header("Location: login.php");
+            exit;
+        } else {
+            // Execution error
+            error_log("Partner registration error: " . mysqli_stmt_error($stmt_user));
+            $_SESSION['alert'] = [
+                'type' => 'error',
+                'message' => "Registration failed: " . mysqli_stmt_error($stmt_user)
+            ];
+            mysqli_stmt_close($stmt_user);
+        }
     }
-
-    mysqli_stmt_close($stmt);
 }
 ?>
 
@@ -39,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - SARPA</title>
+    <title>Partner Registration - SARPA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -59,26 +74,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             document.documentElement.classList.remove('dark');
         }
-
-        function getLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    document.getElementById("latitude").value = position.coords.latitude;
-                    document.getElementById("longitude").value = position.coords.longitude;
-                });
-            } else {
-                alert("Geolocation is not supported by this browser.");
-            }
-        }
     </script>
 </head>
-<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen flex flex-col transition-colors duration-200" onload="getLocation()">
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-white min-h-screen flex flex-col transition-colors duration-200">
     <?php include 'components/header.php'; ?>
     
     <main class="flex-grow flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <div class="max-w-md w-full space-y-8">
             <div class="text-center">
-                <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">Create your account</h2>
+                <h2 class="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">Register as Partner</h2>
                 <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                     Or <a href="login.php" class="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500">sign in to your existing account</a>
                 </p>
@@ -127,14 +131,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
 
                     <div>
-                        <label for="address" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                            Address
+                        <label for="phone" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Phone Number
                         </label>
                         <div class="mt-1">
-                            <textarea id="address" name="address" rows="3" required 
-                                      class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
-                                             focus:outline-none focus:ring-blue-500 focus:border-blue-500 
-                                             dark:bg-gray-700 dark:text-white sm:text-sm"></textarea>
+                            <input id="phone" name="phone" type="tel" required 
+                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="district" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                            District
+                        </label>
+                        <div class="mt-1">
+                            <select id="district" name="district" required 
+                                   class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
+                                          focus:outline-none focus:ring-blue-500 focus:border-blue-500 
+                                          dark:bg-gray-700 dark:text-white sm:text-sm">
+                                <option value="">Select a district</option>
+                                <option value="Alappuzha">Alappuzha</option>
+                                <option value="Ernakulam">Ernakulam</option>
+                                <option value="Idukki">Idukki</option>
+                                <option value="Kannur">Kannur</option>
+                                <option value="Kasaragod">Kasaragod</option>
+                                <option value="Kollam">Kollam</option>
+                                <option value="Kottayam">Kottayam</option>
+                                <option value="Kozhikode">Kozhikode</option>
+                                <option value="Malappuram">Malappuram</option>
+                                <option value="Palakkad">Palakkad</option>
+                                <option value="Pathanamthitta">Pathanamthitta</option>
+                                <option value="Thiruvananthapuram">Thiruvananthapuram</option>
+                                <option value="Thrissur">Thrissur</option>
+                                <option value="Wayanad">Wayanad</option>
+                            </select>
                         </div>
                     </div>
 
@@ -150,13 +182,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                     </div>
 
-                    <input type="hidden" name="latitude" id="latitude">
-                    <input type="hidden" name="longitude" id="longitude">
-
                     <div>
                         <button type="submit" 
                                 class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
-                            Register
+                            Register as Partner
                         </button>
                     </div>
                 </form>
@@ -174,12 +203,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
 
                     <div class="mt-6">
-                        <a href="partner-register.php" 
+                        <a href="register.php" 
                            class="w-full flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition duration-150">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                             </svg>
-                            Register as Partner
+                            Register as User
                         </a>
                     </div>
                 </div>

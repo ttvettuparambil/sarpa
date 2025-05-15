@@ -13,6 +13,8 @@ CREATE TABLE users (
     email VARCHAR(100) UNIQUE,
     password VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    district VARCHAR(100) NOT NULL,
+
 );
 
 
@@ -116,5 +118,26 @@ CREATE TABLE user_remember_tokens (
     token VARCHAR(64) NOT NULL,
     expires_at DATETIME NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE complaint_assignments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    complaint_id VARCHAR(20) NOT NULL,
+    partner_id INT NOT NULL,
+    status ENUM('pending', 'accepted', 'completed', 'rejected') DEFAULT 'pending',
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (complaint_id) REFERENCES snake_sightings(complaint_id) ON DELETE CASCADE,
+    FOREIGN KEY (partner_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE TABLE notifications (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

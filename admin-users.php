@@ -24,8 +24,7 @@ if (!empty($search)) {
 
 // Fetch users with their profiles
 $query = "
-    SELECT u.*, p.dob, p.gender, p.occupation, p.education_level, p.bio, 
-           p.alternate_email, p.alternate_phone
+    SELECT u.*, p.dob, p.gender, p.occupation, p.education_level, p.bio, p.alternate_email, p.alternate_phone
     FROM users u
     LEFT JOIN user_profiles p ON u.id = p.user_id
     $search_condition
@@ -196,68 +195,7 @@ $users = $result->fetch_all(MYSQLI_ASSOC);
             fetch(`get-user-details.php?id=${userId}`)
                 .then(response => response.json())
                 .then(data => {
-                    content.innerHTML = `
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Name</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.first_name} ${data.last_name}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.email}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.role}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Joined</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${new Date(data.created_at).toLocaleDateString()}</p>
-                            </div>
-                            ${data.dob ? `
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.dob}</p>
-                            </div>
-                            ` : ''}
-                            ${data.gender ? `
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.gender}</p>
-                            </div>
-                            ` : ''}
-                            ${data.occupation ? `
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Occupation</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.occupation}</p>
-                            </div>
-                            ` : ''}
-                            ${data.education_level ? `
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Education Level</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.education_level}</p>
-                            </div>
-                            ` : ''}
-                            ${data.bio ? `
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.bio}</p>
-                            </div>
-                            ` : ''}
-                            ${data.alternate_email ? `
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Alternate Email</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.alternate_email}</p>
-                            </div>
-                            ` : ''}
-                            ${data.alternate_phone ? `
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Alternate Phone</label>
-                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.alternate_phone}</p>
-                            </div>
-                            ` : ''}
-                        </div>
-                    `;
+                    content.innerHTML = showUserDetails(data);
                 })
                 .catch(error => {
                     content.innerHTML = '<div class="text-red-600">Error loading user details</div>';
@@ -266,6 +204,68 @@ $users = $result->fetch_all(MYSQLI_ASSOC);
 
         function closeUserDetails() {
             document.getElementById('userDetailsModal').classList.add('hidden');
+        }
+
+        function showUserDetails(data) {
+            return `
+                <div class="space-y-4">
+                    <div>
+                        <h3 class="text-lg font-medium text-gray-900 dark:text-white">Contact Information</h3>
+                        <div class="mt-2 grid grid-cols-1 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Email</p>
+                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.email}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Alternate Email</p>
+                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.alternate_email || 'Not provided'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Phone</p>
+                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.phone || 'Not provided'}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Alternate Phone</p>
+                                <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.alternate_phone || 'Not provided'}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Joined</label>
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white">${new Date(data.created_at).toLocaleDateString()}</p>
+                    </div>
+                    ${data.dob ? `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date of Birth</label>
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.dob}</p>
+                    </div>
+                    ` : ''}
+                    ${data.gender ? `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Gender</label>
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.gender}</p>
+                    </div>
+                    ` : ''}
+                    ${data.occupation ? `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Occupation</label>
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.occupation}</p>
+                    </div>
+                    ` : ''}
+                    ${data.education_level ? `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Education Level</label>
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.education_level}</p>
+                    </div>
+                    ` : ''}
+                    ${data.bio ? `
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
+                        <p class="mt-1 text-sm text-gray-900 dark:text-white">${data.bio}</p>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
         }
     </script>
 </body>

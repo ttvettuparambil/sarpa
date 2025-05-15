@@ -20,8 +20,7 @@ $user_id = $_GET['id'];
 
 // Fetch user details with profile information
 $stmt = $conn->prepare("
-    SELECT u.*, p.dob, p.gender, p.occupation, p.education_level, p.bio, 
-           p.alternate_email, p.alternate_phone
+    SELECT u.*, p.dob, p.gender, p.occupation, p.education_level, p.bio, p.alternate_email, p.alternate_phone
     FROM users u
     LEFT JOIN user_profiles p ON u.id = p.user_id
     WHERE u.id = ?
