@@ -1,5 +1,16 @@
 <?php
 session_start();
+require_once 'dbConnection.php';
+
+// Check if site is in maintenance mode but allow super_admin to proceed
+if (isset($_SESSION['user_temp_role']) && $_SESSION['user_temp_role'] === 'super_admin') {
+    // Allow super_admin to proceed with login
+} else {
+    // Check maintenance mode for non-super_admin users
+    require_once 'maintenance_check.php';
+    checkMaintenanceMode($conn);
+}
+
 if (!isset($_SESSION['otp'])) {
     header("Location: login.php");
     exit;

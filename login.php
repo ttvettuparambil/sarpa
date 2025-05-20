@@ -2,6 +2,9 @@
 session_start();
 include 'dbConnection.php';
 
+// Check if site is in maintenance mode but allow login page to be accessible
+// We'll handle the maintenance mode check after login attempt for super_admin users
+
 // Auto-login using remember me cookie if not already logged in
 if (!isset($_SESSION['user_id']) && isset($_COOKIE['rememberme'])) {
     $token = $_COOKIE['rememberme'];
@@ -20,6 +23,27 @@ if (!isset($_SESSION['user_id']) && isset($_COOKIE['rememberme'])) {
             $_SESSION['role'] = $user['role'];
             $_SESSION['first_name'] = $user['first_name'];
             $_SESSION['last_name'] = $user['last_name'];
+            // Check if site is in maintenance mode and user is not super_admin
+            if ($user['role'] !== 'super_admin') {
+                $maintenanceStmt = $conn->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'maintenance_mode'");
+                $maintenanceStmt->execute();
+                $maintenanceResult = $maintenanceStmt->get_result();
+                if ($maintenanceRow = $maintenanceResult->fetch_assoc()) {
+                    $maintenance_mode = $maintenanceRow['setting_value'];
+                    if ($maintenance_mode == '1') {
+                        // Site is in maintenance mode and user is not super_admin
+                        // Clear the remember-me cookie
+                        setcookie('rememberme', '', time() - 3600, '/', '', true, true);
+                        $_SESSION['alert'] = [
+                            'type' => 'error',
+                            'message' => 'The site is currently under maintenance. Please try again later.'
+                        ];
+                        header("Location: login.php");
+                        exit;
+                    }
+                }
+            }
+            
             // Redirect based on role
             if ($user['role'] == 'user') {
                 header("Location: user-dashboard.php");
@@ -157,6 +181,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $_SESSION['user_temp_id'] = $user['id'];
                         $_SESSION['user_temp_role'] = $user['role'];
                         $_SESSION['otp_generated_at'] = time(); // store UNIX timestamp
+                        
+                        // Check if site is in maintenance mode and user is not super_admin
+                        if ($user['role'] !== 'super_admin') {
+                            $stmt = $conn->prepare("SELECT setting_value FROM site_settings WHERE setting_key = 'maintenance_mode'");
+                            $stmt->execute();
+                            $result = $stmt->get_result();
+                            if ($row = $result->fetch_assoc()) {
+                                $maintenance_mode = $row['setting_value'];
+                                if ($maintenance_mode == '1') {
+                                    // Site is in maintenance mode and user is not super_admin
+                                    $_SESSION['alert'] = [
+                                        'type' => 'error',
+                                        'message' => 'The site is currently under maintenance. Please try again later.'
+                                    ];
+                                    header("Location: login.php");
+                                    exit;
+                                }
+                            }
+                        }
+                        
                         // Redirect to OTP screen
                         header("Location: otp-verify.php");
                         exit;

@@ -10,16 +10,26 @@ SARPA follows a traditional PHP-based web application architecture with the foll
    - Tailwind CSS for styling with responsive design
    - JavaScript for client-side interactivity and form validation
    - Chart.js for data visualization
+   - Video.js for educational video playback
+   - Driver.js for interactive guided tours
+   - Dark mode support with localStorage preference
 
 2. **Backend Layer**
 
    - PHP for server-side processing and business logic
    - MySQL database for data storage
    - Session-based authentication with OTP verification
+   - AJAX endpoints for asynchronous data operations
+   - Middleware pattern for cross-cutting concerns (e.g., maintenance mode)
 
 3. **File Storage**
    - Local file system for storing uploaded images
    - Organized directory structure for different types of uploads
+
+4. **System Features**
+   - Maintenance mode toggle (super_admin only)
+   - Site-wide settings stored in database
+   - Role-based access control (user, partner, super_admin)
 
 ## Component Structure
 
@@ -29,7 +39,32 @@ The application uses a component-based approach for the frontend, with reusable 
 components/
   ├── header.php      # Site navigation and branding
   ├── footer.php      # Copyright, links, contact info
-  └── alerts.php      # For displaying success/error messages
+  ├── alerts.php      # For displaying success/error messages
+  └── admin-sidebar.php # Admin navigation sidebar
+```
+
+## Middleware Structure
+
+The application implements middleware patterns for cross-cutting concerns:
+
+```
+├── maintenance_check.php  # Checks if site is in maintenance mode
+└── maintenance_page.php   # Displayed when site is in maintenance mode
+```
+
+## Database Structure
+
+Key tables in the database include:
+
+```
+├── users                  # User accounts and authentication
+├── user_profiles          # Extended user information
+├── snake_sightings        # Reported snake sightings
+├── password_resets        # Password reset tokens
+├── login_attempts         # Track failed login attempts
+├── user_remember_tokens   # Remember-me functionality
+├── site_settings          # Site-wide configuration settings
+└── account_activity       # User activity logging
 ```
 
 These components are included in each page template to maintain consistency and reduce duplication.
@@ -54,8 +89,14 @@ The database follows a relational model with the following key tables:
    - Used for security monitoring and user activity tracking
 
 4. **login_attempts**
+
    - Tracks failed login attempts for security purposes
    - Used to implement account lockout after multiple failures
+
+5. **user_video_progress**
+   - Tracks user progress in educational videos
+   - Stores timestamp where user left off for each video
+   - Enables resume functionality for educational content
 
 ## Authentication Flow
 
@@ -111,9 +152,23 @@ The database follows a relational model with the following key tables:
    - Consistent user experience across devices
 
 6. **Dark Mode Pattern**
+
    - User preference-based theme switching
    - Persistent theme selection using localStorage
    - Consistent color scheme across light and dark modes
+
+7. **Video Progress Tracking Pattern**
+
+   - Automatic saving of video playback position
+   - Interval-based progress updates to minimize server requests
+   - Resume functionality for seamless user experience
+   - Event-based tracking (play, pause, end) for accurate progress data
+
+8. **User Onboarding Pattern**
+   - Interactive guided tours for new users
+   - Step-by-step introduction to interface elements
+   - First-time user detection with localStorage
+   - Persistent tour availability for reference
 
 ## Error Handling
 
@@ -136,13 +191,20 @@ The database follows a relational model with the following key tables:
    - Appropriate image formats for web display
    - Lazy loading for image-heavy pages
 
-2. **Database Optimization**
+2. **Video Optimization**
+
+   - YouTube embedding for bandwidth-efficient video delivery
+   - Progressive loading for video content
+   - Adaptive quality based on user's connection speed
+
+3. **Database Optimization**
 
    - Indexed fields for common queries
    - Optimized query patterns for dashboard statistics
    - Connection pooling for efficient resource usage
 
-3. **Frontend Optimization**
+4. **Frontend Optimization**
    - Minimal JavaScript with focused functionality
    - Efficient DOM manipulation
    - Responsive image loading based on device capabilities
+   - Throttled event handlers for performance-intensive operations

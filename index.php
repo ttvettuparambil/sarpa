@@ -2,6 +2,10 @@
 session_start();
 require 'dbConnection.php';
 
+// Check if site is in maintenance mode
+require_once 'maintenance_check.php';
+checkMaintenanceMode($conn);
+
 // Prefill contact form fields if user is logged in
 $user_name = $user_email = $user_phone = '';
 if (isset($_SESSION['user_id'])) {

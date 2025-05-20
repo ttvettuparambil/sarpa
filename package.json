@@ -1,5 +1,12 @@
 {
   "dependencies": {
     "tailwindcss": "^4.1.4"
+  },
+  "devDependencies": {
+    "cypress": "^14.3.3"
+  },
+  "scripts": {
+    "test": "cypress run",
+    "test:open": "cypress open"
   }
 }

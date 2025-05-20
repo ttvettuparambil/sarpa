@@ -8,8 +8,6 @@ CREATE TABLE users (
     first_name VARCHAR(50),
     last_name VARCHAR(50),
     address TEXT,
-    latitude DECIMAL(10, 8),
-    longitude DECIMAL(11, 8),
     email VARCHAR(100) UNIQUE,
     password VARCHAR(255),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -141,3 +139,16 @@ CREATE TABLE notifications (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
+
+CREATE TABLE IF NOT EXISTS site_settings (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    setting_key VARCHAR(50) NOT NULL UNIQUE,
+    setting_value TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Insert default settings
+INSERT INTO site_settings (setting_key, setting_value) 
+VALUES ('maintenance_mode', '0') 
+ON DUPLICATE KEY UPDATE setting_value='0';

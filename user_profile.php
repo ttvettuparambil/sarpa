@@ -2,6 +2,10 @@
 // user_profile.php (included or part of user_dashboard.php)
 session_start();
 require 'dbConnection.php';
+// Check if site is in maintenance mode
+require_once 'maintenance_check.php';
+checkMaintenanceMode($conn);
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;

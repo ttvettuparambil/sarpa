@@ -1,6 +1,10 @@
 <?php
 session_start();
 include 'dbConnection.php';
+// Check if site is in maintenance mode
+require_once 'maintenance_check.php';
+checkMaintenanceMode($conn);
+
 // Timeout duration in seconds (10 minutes)
 $timeout_duration = 600; // 10 * 60
 // Check for inactivity

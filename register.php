@@ -1,5 +1,9 @@
 <?php
 include 'dbConnection.php';
+// Check if site is in maintenance mode
+require_once 'maintenance_check.php';
+checkMaintenanceMode($conn);
+
 
 $message = "";
 

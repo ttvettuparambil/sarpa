@@ -6,7 +6,11 @@ $userLoggedIn = false;
 
 if (isset($_SESSION['user_id'])) {
     $userLoggedIn = true;
-    require 'dbConnection.php'; // your DB connection
+    require 'dbConnection.php';
+// Check if site is in maintenance mode
+require_once 'maintenance_check.php';
+checkMaintenanceMode($conn);
+ // your DB connection
     
     // Log that user started a snake sighting form directly with SQL
     // Get IP address
