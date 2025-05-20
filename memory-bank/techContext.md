@@ -10,6 +10,8 @@
 - **Chart.js**: Data visualization library for statistics
 - **DataTables**: Enhanced table functionality with sorting and pagination
 - **Flatpickr**: Date and time picker for form inputs
+- **Video.js**: HTML5 video player framework
+- **Driver.js**: User onboarding and guided tour library
 
 ### Backend
 
@@ -25,13 +27,16 @@
 
 ## Key Dependencies
 
-| Dependency   | Version | Purpose                                 |
-| ------------ | ------- | --------------------------------------- |
-| Tailwind CSS | 3.x     | Utility-first CSS framework             |
-| Chart.js     | 3.x     | Data visualization                      |
-| jQuery       | 3.6.0   | JavaScript library for DOM manipulation |
-| DataTables   | 1.11.5  | Enhanced table functionality            |
-| Flatpickr    | Latest  | Date/time picker                        |
+| Dependency   | Version | Purpose                                      |
+| ------------ | ------- | -------------------------------------------- |
+| Tailwind CSS | 3.x     | Utility-first CSS framework                  |
+| Chart.js     | 3.x     | Data visualization                           |
+| jQuery       | 3.6.0   | JavaScript library for DOM manipulation      |
+| DataTables   | 1.11.5  | Enhanced table functionality                 |
+| Flatpickr    | Latest  | Date/time picker                             |
+| Video.js     | 8.10.0  | HTML5 video player                           |
+| YouTube Tech | 3.0.1   | Video.js extension for YouTube integration   |
+| Driver.js    | 0.9.8   | Interactive guided tours and user onboarding |
 
 ## Environment Setup
 
@@ -108,6 +113,15 @@ sarpa/
 - `attempt_time`: When the attempt occurred
 - `unlock_time`: When the lockout expires (if applicable)
 
+#### user_video_progress
+
+- `id`: Primary key
+- `user_id`: Foreign key to users
+- `video_id`: YouTube video ID or unique identifier
+- `timestamp`: Playback position in seconds
+- `last_updated`: When the progress was last updated
+- Unique constraint on user_id and video_id combination
+
 ## Authentication System
 
 ### Security Features
@@ -134,6 +148,19 @@ The application primarily uses server-rendered pages rather than APIs, but inclu
 - `extend_session.php`: Extends the user's session
 - `get_sighting_stats.php`: Retrieves statistics for charts
 - `resend_otp.php`: Resends OTP for verification
+- `video-progress.php`: Saves and retrieves video playback progress
+
+## Client-Side Storage
+
+- **localStorage**:
+
+  - Dark mode preference
+  - Tour completion status
+  - UI preferences
+
+- **Cookies**:
+  - Session identifiers
+  - Authentication tokens
 
 ## Development Constraints
 
@@ -146,7 +173,9 @@ The application primarily uses server-rendered pages rather than APIs, but inclu
 ## Performance Considerations
 
 - Image optimization for uploads
+- Video delivery optimization through YouTube embedding
 - Efficient database queries with proper indexing
 - Minimal JavaScript with focused functionality
 - Responsive design for all screen sizes
 - Caching strategies for static content
+- Throttled AJAX requests for progress tracking

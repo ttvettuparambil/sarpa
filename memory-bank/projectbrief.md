@@ -12,6 +12,8 @@ SARPA is a comprehensive web application designed to facilitate snake rescue ope
 4. Visualize sighting data through charts and statistics
 5. Implement responsive design with dark mode support
 6. Ensure accessibility and ease of use across devices
+7. Educate users about snake species and safety through interactive content
+8. Improve user onboarding through guided tours and contextual help
 
 ## Target Audience
 
@@ -19,6 +21,7 @@ SARPA is a comprehensive web application designed to facilitate snake rescue ope
 - Professional snake catchers and wildlife rescuers
 - Wildlife researchers and conservationists
 - Government agencies monitoring wildlife
+- Educational institutions teaching about wildlife conservation
 
 ## Technical Requirements
 
@@ -28,6 +31,8 @@ SARPA is a comprehensive web application designed to facilitate snake rescue ope
 - Data Visualization: Chart.js
 - Responsive Design: Mobile-first approach
 - Dark Mode: User preference-based theme switching
+- Video Player: Video.js with YouTube integration
+- User Onboarding: Driver.js for guided tours
 
 ## Key Features
 
@@ -49,11 +54,24 @@ SARPA is a comprehensive web application designed to facilitate snake rescue ope
    - Overview of user's reported sightings
    - Visualization of sighting statistics
    - Profile management
+   - Interactive guided tour for new users
 
 4. **Admin/Partner Interface**
+
    - Sighting management
    - User management
    - Data export capabilities
+
+5. **Educational Content**
+
+   - Educational videos about snake species and safety
+   - Video progress tracking for resume functionality
+   - Interactive learning resources
+
+6. **User Onboarding**
+   - Guided tours for key features
+   - Contextual help and tooltips
+   - First-time user detection
 
 ## Design Guidelines
 
@@ -62,7 +80,8 @@ SARPA is a comprehensive web application designed to facilitate snake rescue ope
 - Layout: Modular components with consistent spacing
 - Accessibility: WCAG compliance for color contrast and readability
 - Dark Mode: Full support with appropriate color adjustments
+- Interactive Elements: Clear visual feedback and intuitive design
 
 ## Project Scope
 
-The initial phase focuses on core functionality including user authentication, sighting reporting, and basic dashboards. Future phases may include mobile app development, advanced analytics, and integration with wildlife conservation databases.
+The initial phase focuses on core functionality including user authentication, sighting reporting, and basic dashboards. The current phase expands to include educational content with video progress tracking and improved user onboarding through guided tours. Future phases may include mobile app development, advanced analytics, and integration with wildlife conservation databases.

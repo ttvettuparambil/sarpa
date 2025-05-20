@@ -8,6 +8,7 @@ In Kerala, India, human-snake encounters are common due to the region's biodiver
 2. Struggle to find qualified snake handlers quickly
 3. Lack knowledge about whether the snake is venomous or harmless
 4. Have no systematic way to report sightings for conservation purposes
+5. Face difficulty navigating unfamiliar digital platforms during emergencies
 
 These issues lead to unnecessary snake deaths, potential human injuries, and lost data for wildlife conservation efforts.
 
@@ -18,7 +19,9 @@ SARPA (Snake Rescue and Reporting Platform) addresses these challenges by:
 1. Providing a centralized platform for reporting snake sightings
 2. Connecting citizens with trained snake handlers
 3. Collecting valuable data on snake species, locations, and behaviors
-4. Educating users about snake identification and safety
+4. Educating users about snake identification and safety through interactive videos
+5. Offering guided tours and contextual help to improve platform usability
+6. Tracking user progress in educational content to enhance learning outcomes
 
 ## User Experience Goals
 
@@ -27,8 +30,10 @@ SARPA (Snake Rescue and Reporting Platform) addresses these challenges by:
 - Simple, intuitive interface for reporting snake sightings
 - Quick access to emergency contact information
 - Ability to track the status of their reports
-- Educational resources about local snake species
+- Educational resources about local snake species with progress tracking
 - Personal dashboard to view past sightings and statistics
+- Guided tours to help navigate the platform efficiently
+- Resume capability for educational videos
 
 ### For Snake Handlers/Partners
 
@@ -36,6 +41,7 @@ SARPA (Snake Rescue and Reporting Platform) addresses these challenges by:
 - Detailed information about the location and snake description
 - Ability to update the status of rescue operations
 - Tools to document rescued snakes and their release
+- Access to educational content for continuous learning
 
 ### For Administrators
 
@@ -43,6 +49,7 @@ SARPA (Snake Rescue and Reporting Platform) addresses these challenges by:
 - Data analytics and reporting capabilities
 - User management tools
 - Content management for educational resources
+- Insights into user engagement with educational content
 
 ## Key Workflows
 
@@ -69,14 +76,34 @@ SARPA (Snake Rescue and Reporting Platform) addresses these challenges by:
 3. User can filter and explore their sighting history
 4. System provides insights based on collected data
 
+### Educational Content Consumption
+
+1. User accesses educational videos from the platform
+2. System tracks user's viewing progress automatically
+3. If user leaves mid-video, the system saves their progress
+4. When user returns, they can resume from where they left off
+5. System provides recommendations for additional content
+
+### User Onboarding
+
+1. New user registers and logs in for the first time
+2. System detects first-time user and initiates guided tour
+3. Tour highlights key features and functionality
+4. User can skip or complete the tour
+5. Tour remains available for future reference
+
 ## Success Metrics
 
 - Number of registered users
 - Number of reported sightings
 - Response time for emergency situations
 - User engagement with educational content
+- Video completion rates
+- Guided tour completion rates
 - Data quality and completeness
 - User satisfaction and retention
+- Time spent on platform
+- Return visit frequency
 
 ## Constraints and Considerations
 
@@ -86,3 +113,5 @@ SARPA (Snake Rescue and Reporting Platform) addresses these challenges by:
 - Must be scalable to handle increasing user base and data volume
 - Must support multiple languages (primarily English and Malayalam)
 - Must comply with wildlife conservation regulations and reporting requirements
+- Must optimize video delivery for varying bandwidth conditions
+- Must provide value even to users with limited technical proficiency
