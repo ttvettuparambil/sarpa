@@ -1,56 +1,84 @@
 <?php
+session_start();
 include 'dbConnection.php';
 // Check if site is in maintenance mode
 require_once 'maintenance_check.php';
 checkMaintenanceMode($conn);
 
-
-$message = "";
+// Initialize form data variables
+$first_name = $last_name = $email = $district = $phone = '';
+$form_error = false;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Get and sanitize form data
     $first_name = htmlspecialchars(trim($_POST['first_name']));
     $last_name = htmlspecialchars(trim($_POST['last_name']));
     $email = htmlspecialchars(trim($_POST['email']));
     $district = htmlspecialchars(trim($_POST['district']));
     $phone = htmlspecialchars(trim($_POST['phone']));
-    $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
     
-    // Insert into users table
-    $sql_user = "INSERT INTO users (role, first_name, last_name, district, email, phone, password) 
-            VALUES ('partner', ?, ?, ?, ?, ?, ?)";
-    $stmt_user = mysqli_prepare($conn, $sql_user);
+    // Check if email already exists
+    $check_sql = "SELECT id FROM users WHERE email = ?";
+    $check_stmt = mysqli_prepare($conn, $check_sql);
+    mysqli_stmt_bind_param($check_stmt, "s", $email);
+    mysqli_stmt_execute($check_stmt);
+    mysqli_stmt_store_result($check_stmt);
     
-    if (!$stmt_user) {
-        // Handle preparation error
-        error_log("Partner registration error: " . mysqli_error($conn));
+    if (mysqli_stmt_num_rows($check_stmt) > 0) {
         $_SESSION['alert'] = [
             'type' => 'error',
-            'message' => "Registration failed: " . mysqli_error($conn)
+            'message' => 'This email is already registered. Please use a different email or <a href="login.php" class="text-blue-600 dark:text-blue-400 hover:text-blue-500">login here</a>.'
         ];
+        mysqli_stmt_close($check_stmt);
+        $form_error = true;
     } else {
-        // Bind parameters and execute
-        mysqli_stmt_bind_param($stmt_user, "ssssss", $first_name, $last_name, $district, $email, $phone, $password);
+        mysqli_stmt_close($check_stmt);
         
-        if (mysqli_stmt_execute($stmt_user)) {
-            // Success
-            $_SESSION['alert'] = [
-                'type' => 'success',
-                'message' => "Registration successful. <a href='login.php' class='text-blue-600 dark:text-blue-400 hover:text-blue-500'>Login here</a>."
-            ];
-            mysqli_stmt_close($stmt_user);
-            header("Location: login.php");
-            exit;
-        } else {
-            // Execution error
-            error_log("Partner registration error: " . mysqli_stmt_error($stmt_user));
+        // Only proceed with registration if there are no form errors
+        if (!$form_error) {
+            // Hash the password
+            $password = password_hash($_POST['password'], PASSWORD_BCRYPT);
+            
+            // Insert into users table
+            $sql_user = "INSERT INTO users (role, first_name, last_name, district, email, phone, password, created_at) 
+                    VALUES ('partner', ?, ?, ?, ?, ?, ?, NOW())";
+            $stmt_user = mysqli_prepare($conn, $sql_user);
+            
+            if (!$stmt_user) {
+            // Handle preparation error
+            error_log("Partner registration error: " . mysqli_error($conn));
             $_SESSION['alert'] = [
                 'type' => 'error',
-                'message' => "Registration failed: " . mysqli_stmt_error($stmt_user)
+                'message' => "Registration failed. Please try again."
             ];
+            $form_error = true;
+        } else {
+            // Bind parameters and execute
+            mysqli_stmt_bind_param($stmt_user, "ssssss", $first_name, $last_name, $district, $email, $phone, $password);
+            
+            if (mysqli_stmt_execute($stmt_user)) {
+                // Success
+                $_SESSION['alert'] = [
+                    'type' => 'success',
+                    'message' => "Registration successful. <a href='login.php' class='text-blue-600 dark:text-blue-400 hover:text-blue-500'>Login here</a>."
+                ];
+                mysqli_stmt_close($stmt_user);
+                header("Location: login.php");
+                exit;
+            } else {
+                // Execution error
+                error_log("Partner registration error: " . mysqli_stmt_error($stmt_user));
+                $_SESSION['alert'] = [
+                    'type' => 'error',
+                    'message' => "Registration failed. Please try again."
+                ];
+                $form_error = true;
+            }
             mysqli_stmt_close($stmt_user);
         }
     }
 }
+            // Error handling code removed as it's now handled in the main logic
 ?>
 
 <!DOCTYPE html>
@@ -103,6 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </label>
                             <div class="mt-1">
                                 <input id="first_name" name="first_name" type="text" required 
+                                       value="<?php echo htmlspecialchars($first_name); ?>"
                                        class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
                                               focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                               dark:bg-gray-700 dark:text-white sm:text-sm">
@@ -115,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </label>
                             <div class="mt-1">
                                 <input id="last_name" name="last_name" type="text" required 
+                                       value="<?php echo htmlspecialchars($last_name); ?>"
                                        class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
                                               focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                               dark:bg-gray-700 dark:text-white sm:text-sm">
@@ -128,6 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </label>
                         <div class="mt-1">
                             <input id="email" name="email" type="email" autocomplete="email" required 
+                                   value="<?php echo htmlspecialchars($email); ?>"
                                    class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
                                           focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                           dark:bg-gray-700 dark:text-white sm:text-sm">
@@ -140,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </label>
                         <div class="mt-1">
                             <input id="phone" name="phone" type="tel" required 
+                                   value="<?php echo htmlspecialchars($phone); ?>"
                                    class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
                                           focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                           dark:bg-gray-700 dark:text-white sm:text-sm">
@@ -155,17 +187,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                    class="appearance-none block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm placeholder-gray-400 
                                           focus:outline-none focus:ring-blue-500 focus:border-blue-500 
                                           dark:bg-gray-700 dark:text-white sm:text-sm">
-                                <option value="">Select a district</option>
-                                <option value="Alappuzha">Alappuzha</option>
-                                <option value="Ernakulam">Ernakulam</option>
-                                <option value="Idukki">Idukki</option>
-                                <option value="Kannur">Kannur</option>
-                                <option value="Kasaragod">Kasaragod</option>
-                                <option value="Kollam">Kollam</option>
-                                <option value="Kottayam">Kottayam</option>
-                                <option value="Kozhikode">Kozhikode</option>
-                                <option value="Malappuram">Malappuram</option>
-                                <option value="Palakkad">Palakkad</option>
+                                <option value="" <?php echo empty($district) ? 'selected' : ''; ?>>Select a district</option>
+                                <option value="Alappuzha" <?php echo $district === 'Alappuzha' ? 'selected' : ''; ?>>Alappuzha</option>
+                                <option value="Ernakulam" <?php echo $district === 'Ernakulam' ? 'selected' : ''; ?>>Ernakulam</option>
+                                <option value="Idukki" <?php echo $district === 'Idukki' ? 'selected' : ''; ?>>Idukki</option>
+                                <option value="Kannur" <?php echo $district === 'Kannur' ? 'selected' : ''; ?>>Kannur</option>
+                                <option value="Kasaragod" <?php echo $district === 'Kasaragod' ? 'selected' : ''; ?>>Kasaragod</option>
+                                <option value="Kollam" <?php echo $district === 'Kollam' ? 'selected' : ''; ?>>Kollam</option>
+                                <option value="Kottayam" <?php echo $district === 'Kottayam' ? 'selected' : ''; ?>>Kottayam</option>
+                                <option value="Kozhikode" <?php echo $district === 'Kozhikode' ? 'selected' : ''; ?>>Kozhikode</option>
+                                <option value="Malappuram" <?php echo $district === 'Malappuram' ? 'selected' : ''; ?>>Malappuram</option>
+                                <option value="Palakkad" <?php echo $district === 'Palakkad' ? 'selected' : ''; ?>>Palakkad</option>
                                 <option value="Pathanamthitta">Pathanamthitta</option>
                                 <option value="Thiruvananthapuram">Thiruvananthapuram</option>
                                 <option value="Thrissur">Thrissur</option>
