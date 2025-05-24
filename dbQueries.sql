@@ -4,15 +4,21 @@ USE sarpa;
 
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    role ENUM('super_admin', 'user', 'partner') NOT NULL DEFAULT 'user',
-    first_name VARCHAR(50),
-    last_name VARCHAR(50),
-    address TEXT,
-    email VARCHAR(100) UNIQUE,
-    password VARCHAR(255),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    district VARCHAR(100) NOT NULL,
-
+    role ENUM('super_admin', 'user', 'partner') DEFAULT 'user',
+    first_name VARCHAR(50) DEFAULT NULL,
+    last_name VARCHAR(50) DEFAULT NULL,
+    district VARCHAR(100) DEFAULT NULL,
+    city VARCHAR(100) DEFAULT NULL,
+    postcode VARCHAR(20) DEFAULT NULL,
+    address_line1 VARCHAR(255) DEFAULT NULL,
+    address_line2 VARCHAR(255) DEFAULT NULL,
+    landmark VARCHAR(255) DEFAULT NULL,
+    email VARCHAR(100) DEFAULT NULL,
+    phone VARCHAR(20) DEFAULT NULL,
+    password VARCHAR(255) DEFAULT NULL,
+    created_at TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+    auth_provider VARCHAR(50) DEFAULT 'manual',
+    provider_user_id VARCHAR(255) DEFAULT NULL
 );
 
 
